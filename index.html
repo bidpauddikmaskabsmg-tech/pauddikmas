@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bidang Pembinaan PAUD dan Dikmas - Official Website</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --navy: #0f172a;
+            --gold: #fbbf24;
+            --gold-light: #fef3c7;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+        }
+        .font-heading {
+            font-family: 'Playfair Display', serif;
+        }
+        .glass-nav {
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+        }
+        .hero-gradient {
+            background: linear-gradient(to right, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.4));
+        }
+        /* Page transitions */
+        .page-content {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+        .page-active {
+            display: block;
+            opacity: 1;
+        }
+        /* Admin Editing Styles */
+        [contenteditable="true"] {
+            outline: 2px dashed #fbbf24;
+            padding: 2px;
+            cursor: text;
+        }
+        [contenteditable="true"]:focus {
+            background: rgba(251, 191, 36, 0.1);
+            outline: 2px solid #fbbf24;
+        }
+        /* Organization Chart */
+        .org-card {
+            border-top: 4px solid #fbbf24;
+        }
+        /* Modal Animation */
+        .modal-enter {
+            animation: modalFadeIn 0.3s ease-out;
+        }
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900">
+
+    <!-- Admin Login Modal (Custom Replacement for window.prompt) -->
+    <div id="login-modal" class="hidden fixed inset-0 z-[200] flex items-center justify-center p-4 bg-navy/80 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden modal-enter">
+            <div class="p-8 text-center">
+                <div class="w-16 h-16 bg-gold/10 text-gold rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i data-lucide="lock" class="w-8 h-8"></i>
+                </div>
+                <h3 class="text-2xl font-heading text-navy mb-2">Akses Administrator</h3>
+                <p class="text-slate-500 text-sm mb-8">Masukkan kode akses untuk mengaktifkan fitur pengeditan konten.</p>
+                
+                <input type="password" id="admin-pin" placeholder="Masukkan Kode PIN" 
+                    class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none text-center text-xl tracking-widest mb-6 transition-all">
+                
+                <div id="login-error" class="hidden text-red-500 text-xs mb-4">Kode akses salah. Silakan coba lagi.</div>
+
+                <div class="flex space-x-3">
+                    <button onclick="closeAdminModal()" class="flex-1 px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition">Batal</button>
+                    <button onclick="validateAdminPin()" class="flex-1 px-6 py-3 rounded-xl font-bold bg-navy text-white hover:bg-slate-800 transition">Masuk</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Toolbar -->
+    <div id="admin-toolbar" class="hidden fixed top-0 left-0 w-full bg-gold text-navy z-[100] px-4 py-2 flex justify-between items-center font-bold text-xs shadow-lg">
+        <div class="flex items-center">
+            <i data-lucide="shield-check" class="w-4 h-4 mr-2"></i>
+            MODE ADMIN AKTIF: Klik teks apa pun untuk mengedit
+        </div>
+        <div class="flex space-x-4">
+            <button onclick="saveAllChanges()" class="bg-navy text-white px-4 py-1 rounded hover:bg-slate-800 transition uppercase">Simpan Perubahan</button>
+            <button onclick="logoutAdmin()" class="bg-red-600 text-white px-4 py-1 rounded hover:bg-red-700 transition uppercase">Keluar</button>
+        </div>
+    </div>
+
+    <!-- Header / Navigation -->
+    <nav class="fixed w-full z-50 glass-nav border-b border-slate-800 text-white transition-all duration-300" id="main-nav">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20 items-center">
+                <div class="flex items-center space-x-3 cursor-pointer" onclick="showPage('beranda')">
+                    <div class="w-10 h-10 bg-gold rounded-lg flex items-center justify-center text-navy font-bold">
+                        <i data-lucide="graduation-cap"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-sm font-bold leading-tight uppercase tracking-wider" data-db="site-title">Bidang Pembinaan</h1>
+                        <p class="text-xs text-gold font-semibold uppercase" data-db="site-subtitle">PAUD & DIKMAS</p>
+                    </div>
+                </div>
+                
+                <div class="hidden md:flex space-x-8 text-sm font-medium uppercase tracking-tight items-center">
+                    <a href="javascript:void(0)" onclick="showPage('beranda')" class="hover:text-gold transition">Beranda</a>
+                    <a href="javascript:void(0)" onclick="showPage('tentang-kami')" class="hover:text-gold transition">Tentang Kami</a>
+                    <div class="group relative cursor-pointer">
+                        <span class="hover:text-gold transition">Seksi <i data-lucide="chevron-down" class="inline w-4 h-4"></i></span>
+                        <div class="absolute top-full left-0 w-48 bg-slate-900 border border-slate-700 rounded-md shadow-xl hidden group-hover:block p-2 mt-1">
+                            <a href="javascript:void(0)" onclick="showPage('seksi-paud')" class="block px-4 py-2 hover:bg-slate-800 rounded">PAUD</a>
+                            <a href="javascript:void(0)" onclick="showPage('seksi-sarpras')" class="block px-4 py-2 hover:bg-slate-800 rounded">Sarpras</a>
+                            <a href="javascript:void(0)" onclick="showPage('seksi-dikmas')" class="block px-4 py-2 hover:bg-slate-800 rounded">Dikmas</a>
+                        </div>
+                    </div>
+                    <a href="javascript:void(0)" onclick="showPage('berita')" class="hover:text-gold transition">Berita</a>
+                    <a href="javascript:void(0)" onclick="window.scrollTo(0, document.body.scrollHeight)" class="hover:text-gold transition">Kontak</a>
+                    <button onclick="promptAdminLogin()" class="text-slate-400 hover:text-white transition ml-4 flex items-center justify-center w-8 h-8 rounded-full hover:bg-white/10">
+                        <i data-lucide="lock" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MAIN PAGE: BERANDA -->
+    <main id="page-beranda" class="page-content page-active">
+        <section class="relative min-h-screen flex items-center pt-20 overflow-hidden">
+            <div id="hero-img-container" class="absolute inset-0 z-0">
+                <div class="w-full h-full bg-slate-900 flex items-center justify-center text-slate-700 italic text-xs">Pemuatan Visual...</div>
+            </div>
+            <div class="absolute inset-0 hero-gradient z-10"></div>
+            <div class="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-white">
+                <div class="max-w-2xl">
+                    <span class="inline-block py-1 px-3 rounded-full bg-gold/20 text-gold text-xs font-bold tracking-widest uppercase mb-6" data-db="hero-label">Pemerintah Kabupaten & Kota</span>
+                    <h2 class="text-4xl md:text-6xl font-heading mb-6 leading-tight" data-db="hero-title">Bidang Pembinaan PAUD dan Dikmas</h2>
+                    <p class="text-lg md:text-xl text-slate-300 mb-10 border-l-4 border-gold pl-6 italic" data-db="hero-tagline">
+                        "Unggul dalam Prestasi, Teguh Berbudaya, Berkarakter dan Berakhlak Mulia"
+                    </p>
+                    <div class="flex flex-wrap gap-4">
+                        <a href="javascript:void(0)" onclick="showPage('tentang-kami')" class="bg-gold text-navy px-8 py-4 rounded-md font-bold hover:bg-white transition flex items-center">
+                            Tentang Kami <i data-lucide="arrow-right" class="ml-2 w-5 h-5"></i>
+                        </a>
+                        <a href="javascript:void(0)" onclick="showPage('berita')" class="bg-white/10 backdrop-blur border border-white/20 text-white px-8 py-4 rounded-md font-bold hover:bg-white/20 transition">
+                            Informasi & Berita
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sambutan Kabid -->
+        <section class="py-24 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid md:grid-cols-2 gap-16 items-center">
+                    <div id="kabid-img-container" class="rounded-2xl overflow-hidden shadow-2xl bg-slate-100 aspect-[4/5]"></div>
+                    <div>
+                        <h3 class="text-navy text-sm font-bold uppercase tracking-widest mb-2" data-db="kabid-label">Sambutan Kepala Bidang</h3>
+                        <h2 class="text-3xl md:text-4xl font-heading text-slate-900 mb-6" data-db="kabid-title">Membangun Masa Depan Melalui Pendidikan Berkarakter</h2>
+                        <div class="space-y-4 text-slate-600 leading-relaxed" data-db="kabid-desc">
+                            <p>Selamat datang di portal informasi resmi Bidang Pembinaan PAUD dan Dikmas. Kami berkomitmen untuk terus berinovasi dalam mengelola pendidikan anak usia dini dan pendidikan masyarakat guna mencetak generasi yang tidak hanya cerdas secara akademik, namun juga memiliki akhlak yang mulia.</p>
+                        </div>
+                        <div class="mt-8 pt-8 border-t border-slate-100">
+                            <p class="font-bold text-navy" data-db="kabid-name">Kepala Bidang Pembinaan PAUD & Dikmas</p>
+                            <p class="text-sm text-slate-500" data-db="kabid-nip">NIP. 19800101 200501 1 001</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- PAGE: TENTANG KAMI & STRUKTUR -->
+    <main id="page-tentang-kami" class="page-content py-32 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-heading text-navy mb-4">Tentang Kami</h2>
+                <div class="w-24 h-1 bg-gold mx-auto"></div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-12 mb-24">
+                <div class="bg-slate-50 p-8 rounded-2xl">
+                    <h3 class="text-xl font-bold text-navy mb-4 flex items-center"><i data-lucide="target" class="mr-2 text-gold"></i> Visi</h3>
+                    <p class="text-slate-600" data-db="about-visi">Terwujudnya layanan PAUD dan Dikmas yang berkualitas, berkarakter, dan inklusif bagi seluruh lapisan masyarakat.</p>
+                </div>
+                <div class="bg-slate-50 p-8 rounded-2xl">
+                    <h3 class="text-xl font-bold text-navy mb-4 flex items-center"><i data-lucide="list-checks" class="mr-2 text-gold"></i> Misi</h3>
+                    <div class="text-slate-600" data-db="about-misi">
+                        <ul class="list-disc list-inside space-y-2">
+                            <li>Meningkatkan kompetensi tenaga pendidik PAUD & Dikmas.</li>
+                            <li>Mengoptimalkan sarana prasarana pendidikan non-formal.</li>
+                            <li>Memperkuat tata kelola kelembagaan yang transparan.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Struktur Organisasi -->
+            <div class="bg-slate-900 rounded-3xl p-12 text-white overflow-hidden relative">
+                <div class="absolute top-0 right-0 p-8 opacity-10"><i data-lucide="sitemap" class="w-32 h-32"></i></div>
+                <div class="relative z-10">
+                    <h3 class="text-3xl font-heading text-center mb-16">Struktur Organisasi Bidang</h3>
+                    
+                    <div class="flex flex-col items-center space-y-12">
+                        <!-- Top Level -->
+                        <div class="w-full max-w-sm bg-white p-6 rounded-xl text-navy text-center shadow-xl org-card">
+                            <p class="text-xs font-bold text-gold uppercase mb-1">Kepala Bidang</p>
+                            <h4 class="font-bold text-lg" data-db="org-kabid">Nama Kepala Bidang</h4>
+                        </div>
+
+                        <div class="w-1 h-12 bg-gold/50"></div>
+
+                        <!-- Mid Level (Grid Seksi) -->
+                        <div class="grid md:grid-cols-3 gap-8 w-full">
+                            <div class="bg-white/5 p-6 rounded-xl border border-white/10 text-center org-card">
+                                <p class="text-xs font-bold text-gold uppercase mb-2">Kasi PAUD</p>
+                                <h4 class="font-bold" data-db="org-kasi-paud">Nama Kepala Seksi PAUD</h4>
+                            </div>
+                            <div class="bg-white/5 p-6 rounded-xl border border-white/10 text-center org-card">
+                                <p class="text-xs font-bold text-gold uppercase mb-2">Kasi Sarpras</p>
+                                <h4 class="font-bold" data-db="org-kasi-sarpras">Nama Kepala Seksi Sarpras</h4>
+                            </div>
+                            <div class="bg-white/5 p-6 rounded-xl border border-white/10 text-center org-card">
+                                <p class="text-xs font-bold text-gold uppercase mb-2">Kasi Dikmas</p>
+                                <h4 class="font-bold" data-db="org-kasi-dikmas">Nama Kepala Seksi Dikmas</h4>
+                            </div>
+                        </div>
+
+                        <div class="text-center mt-12 opacity-50">
+                            <p class="text-sm italic">Didukung oleh jajaran staf fungsional dan pelaksana teknis.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- PAGE: BERITA & INFORMASI -->
+    <main id="page-berita" class="page-content py-32 bg-slate-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-heading text-navy mb-4">Informasi & Berita Terbaru</h2>
+                <p class="text-slate-500" data-db="news-subtitle">Update kegiatan pembinaan dan pengumuman resmi bidang</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- News Card 1 -->
+                <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all group">
+                    <div class="aspect-video bg-slate-200 news-img-container" data-topic="workshop teachers classroom"></div>
+                    <div class="p-6">
+                        <span class="text-xs font-bold text-gold uppercase" data-db="news1-tag">Kegiatan</span>
+                        <h3 class="text-xl font-bold text-navy my-3 group-hover:text-gold transition" data-db="news1-title">Workshop Penguatan Kurikulum Merdeka PAUD</h3>
+                        <p class="text-sm text-slate-500 mb-6" data-db="news1-excerpt">Pendampingan teknis bagi seluruh guru TK dan KB dalam mengimplementasikan metode pembelajaran inovatif.</p>
+                        <a href="#" class="text-navy text-sm font-bold flex items-center">Baca Selengkapnya <i data-lucide="chevron-right" class="ml-1 w-4 h-4"></i></a>
+                    </div>
+                </div>
+                <!-- News Card 2 -->
+                <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all group">
+                    <div class="aspect-video bg-slate-200 news-img-container" data-topic="exam students hall"></div>
+                    <div class="p-6">
+                        <span class="text-xs font-bold text-gold uppercase" data-db="news2-tag">Informasi</span>
+                        <h3 class="text-xl font-bold text-navy my-3 group-hover:text-gold transition" data-db="news2-title">Jadwal Ujian Kesetaraan Paket A, B, dan C Tahun 2024</h3>
+                        <p class="text-sm text-slate-500 mb-6" data-db="news2-excerpt">Berikut adalah rincian jadwal pelaksanaan ujian nasional kesetaraan bagi masyarakat yang telah terdaftar di PKBM.</p>
+                        <a href="#" class="text-navy text-sm font-bold flex items-center">Baca Selengkapnya <i data-lucide="chevron-right" class="ml-1 w-4 h-4"></i></a>
+                    </div>
+                </div>
+                <!-- News Card 3 -->
+                <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all group">
+                    <div class="aspect-video bg-slate-200 news-img-container" data-topic="school renovation building"></div>
+                    <div class="p-6">
+                        <span class="text-xs font-bold text-gold uppercase" data-db="news3-tag">Sarpras</span>
+                        <h3 class="text-xl font-bold text-navy my-3 group-hover:text-gold transition" data-db="news3-title">Rehabilitasi Gedung PKBM dan Sarana Bermain PAUD</h3>
+                        <p class="text-sm text-slate-500 mb-6" data-db="news3-excerpt">Pemerintah daerah mengalokasikan bantuan renovasi fisik untuk 15 lembaga guna meningkatkan keamanan belajar.</p>
+                        <a href="#" class="text-navy text-sm font-bold flex items-center">Baca Selengkapnya <i data-lucide="chevron-right" class="ml-1 w-4 h-4"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- SECTION DETAILS: SEKSI -->
+    <main id="page-seksi-paud" class="page-content py-32 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-4xl font-heading text-navy mb-6" data-db="seksi-paud-title">Seksi Pembinaan PAUD</h2>
+            <p class="text-lg text-slate-600 mb-8 max-w-3xl" data-db="seksi-paud-desc">Bertanggung jawab dalam standarisasi kurikulum, akreditasi lembaga, dan peningkatan kompetensi tenaga pendidik di lingkup Pendidikan Anak Usia Dini.</p>
+            <div class="rounded-3xl overflow-hidden shadow-2xl bg-slate-200 aspect-video seksi-img-container" data-topic="children learning playing with blocks"></div>
+        </div>
+    </main>
+
+    <main id="page-seksi-sarpras" class="page-content py-32 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-4xl font-heading text-navy mb-6" data-db="seksi-sarpras-title">Seksi Sarana dan Prasarana</h2>
+            <p class="text-lg text-slate-600 mb-8 max-w-3xl" data-db="seksi-sarpras-desc">Mengelola perencanaan dan pengadaan fasilitas fisik serta alat peraga edukatif untuk menunjang kualitas sarana pendidikan masyarakat.</p>
+            <div class="rounded-3xl overflow-hidden shadow-2xl bg-slate-200 aspect-video seksi-img-container" data-topic="modern classroom construction blueprints"></div>
+        </div>
+    </main>
+
+    <main id="page-seksi-dikmas" class="page-content py-32 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-4xl font-heading text-navy mb-6" data-db="seksi-dikmas-title">Seksi Pendidikan Masyarakat</h2>
+            <p class="text-lg text-slate-600 mb-8 max-w-3xl" data-db="seksi-dikmas-desc">Menyelenggarakan program keaksaraan, kesetaraan, serta kursus keterampilan untuk pemberdayaan ekonomi dan sosial masyarakat.</p>
+            <div class="rounded-3xl overflow-hidden shadow-2xl bg-slate-200 aspect-video seksi-img-container" data-topic="adults in a digital literacy workshop"></div>
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer id="kontak" class="bg-slate-950 text-white pt-24 pb-12 overflow-hidden relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-3 gap-12 mb-16 border-b border-white/10 pb-16">
+                <div>
+                    <h3 class="text-xl font-bold mb-6">Kontak Kami</h3>
+                    <ul class="space-y-4 text-slate-400">
+                        <li class="flex items-start"><i data-lucide="map-pin" class="w-5 h-5 mr-3 text-gold"></i> <span data-db="footer-address">Jl. Jenderal Sudirman No. 45, Gedung Pendidikan Lt. 2</span></li>
+                        <li class="flex items-center"><i data-lucide="phone" class="w-5 h-5 mr-3 text-gold"></i> <span data-db="footer-phone">(021) 555-0199</span></li>
+                        <li class="flex items-center"><i data-lucide="mail" class="w-5 h-5 mr-3 text-gold"></i> <span data-db="footer-email">kontak@paud-dikmas.go.id</span></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold mb-6">Link Terkait</h3>
+                    <ul class="space-y-4 text-slate-400">
+                        <li><a href="#" class="hover:text-gold transition text-xs">Kementerian Pendidikan</a></li>
+                        <li><a href="#" class="hover:text-gold transition text-xs">Portal Dapodik</a></li>
+                        <li><a href="#" class="hover:text-gold transition text-xs">Informasi Beasiswa</a></li>
+                    </ul>
+                </div>
+                <div class="text-center md:text-right">
+                    <div class="inline-block p-4 bg-white/5 rounded-2xl">
+                        <i data-lucide="graduation-cap" class="w-12 h-12 text-gold mx-auto md:ml-auto"></i>
+                        <p class="mt-4 text-xs font-bold uppercase tracking-widest">PAUD & DIKMAS</p>
+                    </div>
+                </div>
+            </div>
+            <p class="text-center text-slate-500 text-[10px]" data-db="footer-copy">Copyright &copy; 2024 Bidang Pembinaan PAUD dan Dikmas. Seluruh Hak Cipta Dilindungi.</p>
+        </div>
+    </footer>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'paud-dikmas-v2';
+
+        let currentUser = null;
+
+        const initAuth = async () => {
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await signInWithCustomToken(auth, __initial_auth_token);
+            } else {
+                await signInAnonymously(auth);
+            }
+        };
+
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user;
+            if (user) loadContent();
+        });
+
+        const loadContent = () => {
+            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'siteContent', 'main');
+            onSnapshot(docRef, (snapshot) => {
+                if (snapshot.exists()) {
+                    const data = snapshot.data();
+                    Object.keys(data).forEach(key => {
+                        const el = document.querySelector(`[data-db="${key}"]`);
+                        if (el) el.innerHTML = data[key];
+                    });
+                }
+            }, (error) => console.error("Error loading content:", error));
+        };
+
+        // UI Helpers for Admin Login attached to window
+        window.promptAdminLogin = () => {
+            document.getElementById('login-modal').classList.remove('hidden');
+            document.getElementById('admin-pin').focus();
+        };
+
+        window.closeAdminModal = () => {
+            document.getElementById('login-modal').classList.add('hidden');
+            document.getElementById('admin-pin').value = '';
+            document.getElementById('login-error').classList.add('hidden');
+        };
+
+        window.validateAdminPin = () => {
+            const pin = document.getElementById('admin-pin').value;
+            if (pin === "1234") { 
+                enableAdminMode();
+                window.closeAdminModal();
+            } else {
+                document.getElementById('login-error').classList.remove('hidden');
+            }
+        };
+
+        const enableAdminMode = () => {
+            document.getElementById('admin-toolbar').classList.remove('hidden');
+            document.getElementById('main-nav').style.top = "40px";
+            document.querySelectorAll('[data-db]').forEach(el => {
+                el.setAttribute('contenteditable', 'true');
+            });
+        };
+
+        window.logoutAdmin = () => {
+            window.location.reload();
+        };
+
+        window.saveAllChanges = async () => {
+            if (!currentUser) return;
+            const dataToSave = {};
+            document.querySelectorAll('[data-db]').forEach(el => {
+                dataToSave[el.getAttribute('data-db')] = el.innerHTML;
+            });
+
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'siteContent', 'main');
+                await setDoc(docRef, dataToSave, { merge: true });
+                // Custom notification instead of alert
+                const btn = event.target;
+                const originalText = btn.innerText;
+                btn.innerText = "BERHASIL!";
+                btn.classList.replace('bg-navy', 'bg-green-600');
+                setTimeout(() => {
+                    btn.innerText = originalText;
+                    btn.classList.replace('bg-green-600', 'bg-navy');
+                }, 2000);
+            } catch (err) {
+                console.error("Save Error:", err);
+            }
+        };
+
+        initAuth();
+    </script>
+
+    <script>
+        // UI Navigation
+        function showPage(pageId) {
+            const pages = ['beranda', 'tentang-kami', 'berita', 'seksi-paud', 'seksi-sarpras', 'seksi-dikmas'];
+            pages.forEach(p => {
+                const element = document.getElementById('page-' + p);
+                if (element) element.classList.remove('page-active');
+            });
+            const activePage = document.getElementById('page-' + pageId);
+            if (activePage) {
+                activePage.classList.add('page-active');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        // Image Generation with retry
+        const apiKey = ""; 
+
+        async function fetchWithRetry(url, options, maxRetries = 5) {
+            let backoff = 1000;
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (response.ok) return response;
+                    await new Promise(resolve => setTimeout(resolve, backoff));
+                    backoff *= 2;
+                } catch (err) {
+                    if (i === maxRetries - 1) throw err;
+                    await new Promise(resolve => setTimeout(resolve, backoff));
+                    backoff *= 2;
+                }
+            }
+        }
+
+        async function generateIllustration(prompt, elementId, className = "w-full h-full object-cover") {
+            try {
+                const response = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ instances: { prompt: prompt }, parameters: { sampleCount: 1 } })
+                });
+                const data = await response.json();
+                if (data.predictions?.[0]?.bytesBase64Encoded) {
+                    const imgUrl = `data:image/png;base64,${data.predictions[0].bytesBase64Encoded}`;
+                    const target = document.getElementById(elementId);
+                    if (target) target.innerHTML = `<img src="${imgUrl}" class="${className}" alt="AI">`;
+                }
+            } catch (error) { console.error("Image Error:", error); }
+        }
+
+        async function generateIntoContainer(prompt, container, className = "w-full h-full object-cover") {
+             try {
+                const response = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ instances: { prompt: prompt }, parameters: { sampleCount: 1 } })
+                });
+                const data = await response.json();
+                if (data.predictions?.[0]?.bytesBase64Encoded) {
+                    const imgUrl = `data:image/png;base64,${data.predictions[0].bytesBase64Encoded}`;
+                    container.innerHTML = `<img src="${imgUrl}" class="${className}" alt="AI">`;
+                }
+            } catch (error) { container.innerHTML = `<div class='bg-slate-200 w-full h-full'></div>`; }
+        }
+
+        window.onload = () => {
+            lucide.createIcons();
+            
+            // Hero & Kabid Images
+            generateIllustration("Modern elegant government office building, professional digital art, blue theme", "hero-img-container", "w-full h-full object-cover opacity-60");
+            generateIllustration("Professional office headshot illustration for a government official, academic setting", "kabid-img-container");
+
+            // News Images
+            document.querySelectorAll('.news-img-container').forEach(c => {
+                generateIntoContainer(`Digital illustration of ${c.dataset.topic}, educational professional style`, c);
+            });
+
+            // Seksi Images
+            document.querySelectorAll('.seksi-img-container').forEach(c => {
+                generateIntoContainer(`Digital illustration of ${c.dataset.topic}, professional clean style`, c);
+            });
+        };
+    </script>
+</body>
+</html>
