@@ -36,7 +36,7 @@
             display: block;
             opacity: 1;
         }
-        /* Admin Interactive Styles */
+        /* Gaya Edit Admin */
         [contenteditable="true"] {
             outline: 1px dashed #fbbf24;
             padding: 2px;
@@ -49,15 +49,15 @@
         .edit-img-btn {
             display: none;
             position: absolute;
-            top: 10px;
-            right: 10px;
-            z-index: 40;
+            top: 12px;
+            right: 12px;
+            z-index: 50;
             background: #fbbf24;
             color: #0f172a;
-            padding: 8px;
+            padding: 10px;
             border-radius: 50%;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
         .admin-mode-active .edit-img-btn {
             display: block;
@@ -65,335 +65,311 @@
         .img-container {
             position: relative;
             overflow: hidden;
+            background: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .org-line {
+            width: 2px;
+            background: #fbbf24;
+            height: 40px;
         }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900">
 
-    <!-- Admin Login Modal -->
+    <!-- Modal Login Admin -->
     <div id="login-modal" class="hidden fixed inset-0 z-[200] flex items-center justify-center p-4 bg-navy/80 backdrop-blur-sm">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 text-center">
-            <div class="w-16 h-16 bg-gold/10 text-gold rounded-full flex items-center justify-center mx-auto mb-6">
-                <i data-lucide="lock" class="w-8 h-8"></i>
-            </div>
-            <h3 class="text-2xl font-heading text-navy mb-2">Akses Administrator</h3>
-            <p class="text-slate-500 text-sm mb-8">Masukkan kode akses untuk mengaktifkan fitur pengeditan.</p>
-            <input type="password" id="admin-pin" placeholder="PIN" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-gold outline-none text-center text-xl mb-6">
-            <div id="login-error" class="hidden text-red-500 text-xs mb-4">Kode akses salah.</div>
+            <i data-lucide="lock" class="w-12 h-12 text-gold mx-auto mb-4"></i>
+            <h3 class="text-2xl font-heading mb-6 text-navy">Akses Administrator</h3>
+            <input type="password" id="admin-pin" placeholder="Masukkan PIN (1234)" class="w-full px-4 py-3 rounded-xl border mb-6 text-center text-xl tracking-widest outline-none focus:border-gold">
+            <div id="login-error" class="hidden text-red-500 text-xs mb-4">PIN Salah, silakan coba lagi.</div>
             <div class="flex space-x-3">
-                <button onclick="closeAdminModal()" class="flex-1 py-3 font-bold text-slate-500">Batal</button>
-                <button onclick="validateAdminPin()" class="flex-1 py-3 font-bold bg-navy text-white rounded-xl">Masuk</button>
+                <button onclick="closeAdminModal()" class="flex-1 py-3 text-slate-500 hover:bg-slate-100 rounded-lg">Batal</button>
+                <button onclick="validateAdminPin()" class="flex-1 py-3 bg-navy text-white rounded-xl hover:bg-slate-800">Masuk</button>
             </div>
         </div>
     </div>
 
-    <!-- Image Prompt Modal -->
-    <div id="img-prompt-modal" class="hidden fixed inset-0 z-[210] flex items-center justify-center p-4 bg-navy/80 backdrop-blur-sm">
+    <!-- Modal Edit Link Gambar -->
+    <div id="img-url-modal" class="hidden fixed inset-0 z-[210] flex items-center justify-center p-4 bg-navy/80 backdrop-blur-sm">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8">
-            <h3 class="text-xl font-bold text-navy mb-4">Ganti Gambar (Prompt AI)</h3>
-            <p class="text-slate-500 text-sm mb-4">Deskripsikan gambar yang ingin Anda buat. Gunakan bahasa Inggris untuk hasil terbaik.</p>
-            <textarea id="new-img-prompt" rows="4" class="w-full p-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-gold outline-none mb-6"></textarea>
+            <h3 class="text-xl font-bold text-navy mb-4 flex items-center"><i data-lucide="link" class="mr-2"></i> Ganti Tautan Gambar</h3>
+            <p class="text-slate-500 text-sm mb-4">Masukkan URL/Link gambar yang ingin ditampilkan:</p>
+            <textarea id="new-img-url" rows="3" class="w-full p-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-gold mb-6" placeholder="https://images.unsplash.com/..."></textarea>
             <div class="flex space-x-3">
                 <button onclick="closeImgModal()" class="flex-1 py-3 font-bold text-slate-500">Batal</button>
-                <button onclick="applyImgPrompt()" class="flex-1 py-3 font-bold bg-gold text-navy rounded-xl uppercase">Generate Gambar</button>
+                <button onclick="applyImgUrl()" class="flex-1 py-3 font-bold bg-gold text-navy rounded-xl uppercase">Terapkan Gambar</button>
             </div>
         </div>
     </div>
 
-    <!-- Admin Toolbar -->
+    <!-- Toolbar Admin -->
     <div id="admin-toolbar" class="hidden fixed top-0 left-0 w-full bg-gold text-navy z-[100] px-4 py-2 flex justify-between items-center font-bold text-xs shadow-lg">
-        <div><i data-lucide="shield-check" class="inline w-4 h-4 mr-2"></i> ADMIN AKTIF</div>
+        <div class="flex items-center"><i data-lucide="shield-check" class="mr-2 w-4 h-4"></i> MODE ADMIN AKTIF</div>
         <div class="flex space-x-4">
             <button onclick="saveAllChanges()" id="save-btn" class="bg-navy text-white px-6 py-1 rounded hover:bg-slate-800 transition">SIMPAN PERUBAHAN</button>
             <button onclick="logoutAdmin()" class="bg-red-600 text-white px-6 py-1 rounded hover:bg-red-700 transition">KELUAR</button>
         </div>
     </div>
 
-    <!-- Header -->
+    <!-- Navigasi Utama -->
     <nav class="fixed w-full z-50 glass-nav border-b border-slate-800 text-white transition-all duration-300" id="main-nav">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-20 items-center">
                 <div class="flex items-center space-x-3 cursor-pointer" onclick="showPage('beranda')">
-                    <div class="w-10 h-10 bg-gold rounded-lg flex items-center justify-center text-navy">
-                        <i data-lucide="graduation-cap"></i>
-                    </div>
+                    <div class="w-10 h-10 bg-gold rounded-lg flex items-center justify-center text-navy"><i data-lucide="graduation-cap"></i></div>
                     <div>
-                        <h1 class="text-sm font-bold leading-tight uppercase tracking-wider" data-db="site-title">Bidang Pembinaan</h1>
-                        <p class="text-xs text-gold font-semibold uppercase" data-db="site-subtitle">PAUD & DIKMAS</p>
+                        <h1 class="text-sm font-bold uppercase tracking-wider" data-db="site-title">Bidang Pembinaan</h1>
+                        <p class="text-xs text-gold uppercase" data-db="site-subtitle">PAUD & DIKMAS</p>
                     </div>
                 </div>
-                <div class="hidden md:flex space-x-8 text-sm font-medium uppercase tracking-tight items-center">
-                    <a href="javascript:void(0)" onclick="showPage('beranda')" class="hover:text-gold transition">Beranda</a>
-                    <a href="javascript:void(0)" onclick="showPage('tentang-kami')" class="hover:text-gold transition">Tentang Kami</a>
+                
+                <div class="hidden md:flex space-x-8 text-sm font-medium uppercase items-center">
+                    <a href="javascript:void(0)" onclick="showPage('beranda')" class="hover:text-gold transition" data-db="menu-home">Beranda</a>
+                    <a href="javascript:void(0)" onclick="showPage('tentang-kami')" class="hover:text-gold transition" data-db="menu-about">Tentang Kami</a>
                     <div class="group relative cursor-pointer">
-                        <span class="hover:text-gold transition">Seksi <i data-lucide="chevron-down" class="inline w-4 h-4"></i></span>
+                        <span class="hover:text-gold transition" data-db="menu-seksi">Seksi <i data-lucide="chevron-down" class="inline w-4 h-4"></i></span>
                         <div class="absolute top-full left-0 w-48 bg-slate-900 border border-slate-700 rounded-md shadow-xl hidden group-hover:block p-2 mt-1">
                             <a href="javascript:void(0)" onclick="showPage('seksi-paud')" class="block px-4 py-2 hover:bg-slate-800 rounded">PAUD</a>
                             <a href="javascript:void(0)" onclick="showPage('seksi-sarpras')" class="block px-4 py-2 hover:bg-slate-800 rounded">Sarpras</a>
                             <a href="javascript:void(0)" onclick="showPage('seksi-dikmas')" class="block px-4 py-2 hover:bg-slate-800 rounded">Dikmas</a>
                         </div>
                     </div>
-                    <a href="javascript:void(0)" onclick="showPage('berita')" class="hover:text-gold transition">Berita</a>
-                    <button onclick="promptAdminLogin()" class="text-slate-400 hover:text-white transition ml-4"><i data-lucide="lock" class="w-4 h-4"></i></button>
+                    <a href="javascript:void(0)" onclick="showPage('berita')" class="hover:text-gold transition" data-db="menu-news">Berita</a>
+                    <button id="lock-icon" onclick="promptAdminLogin()" class="text-slate-400 hover:text-white transition ml-4"><i data-lucide="lock" class="w-4 h-4"></i></button>
                 </div>
             </div>
         </div>
     </nav>
 
-    <!-- PAGE: BERANDA -->
+    <!-- HALAMAN: BERANDA -->
     <main id="page-beranda" class="page-content page-active">
-        <!-- Hero -->
         <section class="relative min-h-screen flex items-center pt-20 overflow-hidden">
-            <div id="hero-img-container" class="absolute inset-0 z-0 img-container" data-img-db="img-hero">
-                <button class="edit-img-btn" onclick="openImgModal('img-hero')"><i data-lucide="camera"></i></button>
+            <div class="absolute inset-0 z-0 img-container" data-img-db="img-hero-url">
+                <button class="edit-img-btn" onclick="openImgModal('img-hero-url')"><i data-lucide="camera"></i></button>
+                <img src="https://images.unsplash.com/photo-1541339907198-e08756ebafe3?q=80&w=2070" class="w-full h-full object-cover">
             </div>
             <div class="absolute inset-0 hero-gradient z-10"></div>
             <div class="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-white">
-                <div class="max-w-2xl">
-                    <span class="inline-block py-1 px-3 rounded-full bg-gold/20 text-gold text-xs font-bold tracking-widest uppercase mb-6" data-db="hero-label">Pemerintah Kabupaten</span>
-                    <h2 class="text-4xl md:text-6xl font-heading mb-6 leading-tight" data-db="hero-title">Bidang Pembinaan PAUD dan Dikmas</h2>
-                    <p class="text-lg md:text-xl text-slate-300 mb-10 border-l-4 border-gold pl-6 italic" data-db="hero-tagline">"Unggul dalam Prestasi, Teguh Berbudaya"</p>
-                    <a href="javascript:void(0)" onclick="showPage('tentang-kami')" class="bg-gold text-navy px-8 py-4 rounded-md font-bold hover:bg-white transition">Selengkapnya</a>
+                <span class="inline-block px-3 py-1 bg-gold/20 text-gold rounded-full text-xs font-bold uppercase mb-4" data-db="hero-label">Pemerintah Kabupaten</span>
+                <h2 class="text-4xl md:text-6xl font-heading mb-6 leading-tight" data-db="hero-title">Website Resmi Bidang PAUD & Dikmas</h2>
+                <p class="text-lg md:text-xl text-slate-300 border-l-4 border-gold pl-6 italic mb-10" data-db="hero-tagline">"Unggul dalam Prestasi, Teguh Berbudaya, Berkarakter dan Berakhlak Mulia"</p>
+                <div class="flex space-x-4">
+                    <button onclick="showPage('tentang-kami')" class="bg-gold text-navy px-8 py-4 rounded-lg font-bold">Tentang Kami</button>
                 </div>
             </div>
         </section>
 
-        <!-- Sambutan -->
         <section class="py-24 bg-white">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-2 gap-16 items-center">
-                <div id="kabid-img-container" class="rounded-2xl overflow-hidden shadow-2xl bg-slate-100 aspect-[4/5] img-container" data-img-db="img-kabid">
-                    <button class="edit-img-btn" onclick="openImgModal('img-kabid')"><i data-lucide="camera"></i></button>
-                </div>
-                <div>
-                    <h3 class="text-navy text-sm font-bold uppercase mb-2" data-db="kabid-label">Sambutan Kepala Bidang</h3>
-                    <h2 class="text-3xl md:text-4xl font-heading text-slate-900 mb-6" data-db="kabid-title">Membangun Masa Depan</h2>
-                    <div class="space-y-4 text-slate-600 leading-relaxed" data-db="kabid-desc">
-                        <p>Selamat datang di portal informasi resmi. Kami berkomitmen untuk terus berinovasi dalam mengelola pendidikan masyarakat.</p>
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid md:grid-cols-2 gap-16 items-center">
+                    <div class="img-container rounded-2xl shadow-2xl aspect-[4/5]" data-img-db="img-kabid-url">
+                        <button class="edit-img-btn" onclick="openImgModal('img-kabid-url')"><i data-lucide="camera"></i></button>
+                        <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=1974" class="w-full h-full object-cover">
                     </div>
-                    <div class="mt-8 pt-8 border-t border-slate-100">
-                        <p class="font-bold text-navy" data-db="kabid-name">Nama Kepala Bidang</p>
-                        <p class="text-sm text-slate-500" data-db="kabid-nip">NIP. 123456789</p>
+                    <div>
+                        <h3 class="text-gold font-bold uppercase tracking-widest mb-2" data-db="welcome-label">Sambutan Kepala Bidang</h3>
+                        <h2 class="text-3xl md:text-4xl font-heading text-navy mb-6" data-db="welcome-title">Membangun Fondasi Masa Depan Bangsa</h2>
+                        <div class="text-slate-600 leading-relaxed space-y-4" data-db="welcome-text">
+                            <p>Selamat datang di portal informasi resmi. Kami berdedikasi untuk menciptakan ekosistem pendidikan berkualitas.</p>
+                        </div>
+                        <div class="mt-8 pt-8 border-t border-slate-100">
+                            <p class="font-bold text-navy" data-db="kabid-name">NAMA KEPALA BIDANG, S.Pd., M.Pd.</p>
+                            <p class="text-sm text-slate-500" data-db="kabid-nip">NIP. 19800000 200000 1 001</p>
+                        </div>
                     </div>
                 </div>
             </div>
         </section>
     </main>
 
-    <!-- PAGE: TENTANG KAMI -->
+    <!-- HALAMAN: TENTANG KAMI -->
     <main id="page-tentang-kami" class="page-content py-32 bg-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16">
-                <h2 class="text-4xl font-heading text-navy mb-4">Struktur Organisasi</h2>
-                <div class="w-24 h-1 bg-gold mx-auto"></div>
-            </div>
-            <div class="bg-slate-900 rounded-3xl p-12 text-white flex flex-col items-center space-y-12 shadow-2xl">
-                <div class="w-full max-w-sm bg-white p-6 rounded-xl text-navy text-center shadow-lg border-t-4 border-gold">
-                    <p class="text-xs font-bold text-gold uppercase mb-1">Kepala Bidang</p>
-                    <h4 class="font-bold text-lg" data-db="org-kabid">Nama Kepala Bidang</h4>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 class="text-4xl font-heading text-navy mb-16" data-db="about-title">Struktur Organisasi</h2>
+            <div class="bg-navy rounded-3xl p-12 text-white shadow-2xl flex flex-col items-center">
+                <div class="w-64 bg-white p-6 rounded-xl text-navy shadow-xl border-t-4 border-gold">
+                    <p class="text-[10px] font-bold text-gold uppercase mb-1">Kepala Bidang</p>
+                    <h4 class="font-bold" data-db="org-kabid-name">Nama Kepala Bidang</h4>
                 </div>
-                <div class="grid md:grid-cols-3 gap-8 w-full">
-                    <div class="bg-white/5 p-6 rounded-xl border border-white/10 text-center border-t-4 border-gold">
-                        <p class="text-xs font-bold text-gold mb-2 uppercase">Kasi PAUD</p>
-                        <h4 class="font-bold" data-db="org-kasi-paud">Nama Kasi PAUD</h4>
+                <div class="org-line"></div>
+                <div class="flex flex-wrap justify-center gap-8">
+                    <div class="w-48 bg-white/10 p-4 rounded-xl border border-white/20">
+                        <p class="text-[10px] font-bold text-gold uppercase mb-1">Kasi PAUD</p>
+                        <h4 class="font-bold text-xs" data-db="org-kasi-paud">Nama Kasi PAUD</h4>
                     </div>
-                    <div class="bg-white/5 p-6 rounded-xl border border-white/10 text-center border-t-4 border-gold">
-                        <p class="text-xs font-bold text-gold mb-2 uppercase">Kasi Sarpras</p>
-                        <h4 class="font-bold" data-db="org-kasi-sarpras">Nama Kasi Sarpras</h4>
+                    <div class="w-48 bg-white/10 p-4 rounded-xl border border-white/20">
+                        <p class="text-[10px] font-bold text-gold uppercase mb-1">Kasi Sarpras</p>
+                        <h4 class="font-bold text-xs" data-db="org-kasi-sarpras">Nama Kasi Sarpras</h4>
                     </div>
-                    <div class="bg-white/5 p-6 rounded-xl border border-white/10 text-center border-t-4 border-gold">
-                        <p class="text-xs font-bold text-gold mb-2 uppercase">Kasi Dikmas</p>
-                        <h4 class="font-bold" data-db="org-kasi-dikmas">Nama Kasi Dikmas</h4>
+                    <div class="w-48 bg-white/10 p-4 rounded-xl border border-white/20">
+                        <p class="text-[10px] font-bold text-gold uppercase mb-1">Kasi Dikmas</p>
+                        <h4 class="font-bold text-xs" data-db="org-kasi-dikmas">Nama Kasi Dikmas</h4>
                     </div>
                 </div>
             </div>
         </div>
     </main>
 
-    <!-- PAGE: BERITA -->
+    <!-- HALAMAN: BERITA -->
     <main id="page-berita" class="page-content py-32 bg-slate-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 class="text-4xl font-heading text-navy text-center mb-16">Berita Terbaru</h2>
+            <h2 class="text-4xl font-heading text-navy text-center mb-16" data-db="news-title">Berita Utama</h2>
             <div class="grid md:grid-cols-3 gap-8">
-                <div class="bg-white rounded-2xl overflow-hidden shadow-sm group">
-                    <div class="aspect-video img-container" id="news1-img-container" data-img-db="img-news-1">
-                        <button class="edit-img-btn" onclick="openImgModal('img-news-1')"><i data-lucide="camera"></i></button>
+                <div class="bg-white rounded-2xl overflow-hidden shadow-sm">
+                    <div class="aspect-video img-container" data-img-db="img-news1-url">
+                        <button class="edit-img-btn" onclick="openImgModal('img-news1-url')"><i data-lucide="camera"></i></button>
+                        <img src="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=2070" class="w-full h-full object-cover">
                     </div>
                     <div class="p-6">
-                        <h3 class="text-xl font-bold text-navy my-3" data-db="news1-title">Judul Berita 1</h3>
-                        <p class="text-sm text-slate-500" data-db="news1-excerpt">Ringkasan berita singkat yang dapat Anda edit...</p>
-                    </div>
-                </div>
-                <div class="bg-white rounded-2xl overflow-hidden shadow-sm group">
-                    <div class="aspect-video img-container" id="news2-img-container" data-img-db="img-news-2">
-                        <button class="edit-img-btn" onclick="openImgModal('img-news-2')"><i data-lucide="camera"></i></button>
-                    </div>
-                    <div class="p-6">
-                        <h3 class="text-xl font-bold text-navy my-3" data-db="news2-title">Judul Berita 2</h3>
-                        <p class="text-sm text-slate-500" data-db="news2-excerpt">Ringkasan berita singkat yang dapat Anda edit...</p>
-                    </div>
-                </div>
-                <div class="bg-white rounded-2xl overflow-hidden shadow-sm group">
-                    <div class="aspect-video img-container" id="news3-img-container" data-img-db="img-news-3">
-                        <button class="edit-img-btn" onclick="openImgModal('img-news-3')"><i data-lucide="camera"></i></button>
-                    </div>
-                    <div class="p-6">
-                        <h3 class="text-xl font-bold text-navy my-3" data-db="news3-title">Judul Berita 3</h3>
-                        <p class="text-sm text-slate-500" data-db="news3-excerpt">Ringkasan berita singkat yang dapat Anda edit...</p>
+                        <h3 class="text-xl font-bold text-navy mb-4" data-db="news1-title">Judul Berita 1</h3>
+                        <p class="text-sm text-slate-500" data-db="news1-excerpt">Deskripsi singkat berita...</p>
                     </div>
                 </div>
             </div>
         </div>
     </main>
 
-    <!-- PAGE: SEKSI (Generic Container) -->
-    <main id="page-seksi-generic" class="page-content py-32 bg-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 class="text-4xl font-heading text-navy mb-6" id="seksi-title" data-db="seksi-title-val">Detail Seksi</h2>
-            <p class="text-lg text-slate-600 mb-8" id="seksi-desc" data-db="seksi-desc-val">Deskripsi lengkap mengenai seksi yang dipilih.</p>
-            <div class="rounded-3xl overflow-hidden shadow-2xl aspect-video img-container" id="seksi-img-container" data-img-db="img-seksi-val">
-                <button class="edit-img-btn" onclick="openImgModal('img-seksi-val')"><i data-lucide="camera"></i></button>
-            </div>
-        </div>
-    </main>
-
-    <!-- Footer -->
-    <footer class="bg-slate-950 text-white pt-24 pb-12">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-b border-white/10 pb-12 flex flex-col md:flex-row justify-between items-center gap-8 text-center md:text-left">
-            <div>
-                <h3 class="text-xl font-bold mb-4">Kontak Resmi</h3>
-                <p class="text-slate-400 text-sm" data-db="footer-address">Jl. Jenderal Sudirman No. 45, Gedung Pendidikan</p>
-                <p class="text-slate-400 text-sm mt-2" data-db="footer-phone">(021) 555-0199</p>
-            </div>
-            <div class="p-4 bg-white/5 rounded-2xl flex items-center space-x-3">
-                <i data-lucide="graduation-cap" class="w-10 h-10 text-gold"></i>
-                <span class="text-xs font-bold uppercase tracking-widest">PAUD & DIKMAS</span>
-            </div>
-        </div>
-        <p class="text-center text-slate-500 text-[10px] mt-12" data-db="footer-copy">© 2024 Bidang Pembinaan PAUD & Dikmas.</p>
+    <footer class="bg-slate-950 text-white py-12 text-center">
+        <p class="text-xs font-bold text-slate-500 uppercase" data-db="footer-copy">© 2026 Bidang Pembinaan PAUD & Dikmas. Seluruh Hak Cipta Dilindungi.</p>
     </footer>
 
-    <!-- Firebase -->
+    <!-- Firebase SDK (Version 11.6.1) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        const firebaseConfig = JSON.parse(__firebase_config);
+        // --- KONFIGURASI UNTUK GITHUB PAGES ---
+        // Jika Anda menggunakan akun Firebase sendiri, ganti objek di bawah ini.
+        let firebaseConfig = {};
+        
+        try {
+            // Cek apakah variabel lingkungan tersedia (Lingkungan Canvas)
+            if (typeof __firebase_config !== 'undefined') {
+                firebaseConfig = JSON.parse(__firebase_config);
+            } else {
+                // FALLBACK: Konfigurasi default (Ganti ini jika ingin menggunakan database pribadi di GitHub)
+                firebaseConfig = {
+                    apiKey: "YOUR_API_KEY",
+                    authDomain: "YOUR_PROJECT.firebaseapp.com",
+                    projectId: "YOUR_PROJECT_ID",
+                    storageBucket: "YOUR_PROJECT.appspot.com",
+                    messagingSenderId: "YOUR_SENDER_ID",
+                    appId: "YOUR_APP_ID"
+                };
+            }
+        } catch (e) {
+            console.error("Gagal memuat konfigurasi Firebase");
+        }
+
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'paud-dikmas-pro';
+        
+        // Aturan 1: ID Aplikasi unik
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'paud-dikmas-github-deploy';
 
-        let currentAuth = null;
         let siteData = {};
-        let currentEditingImgKey = null;
 
-        // API Key for Gemini
-        const apiKey = "";
-
-        // Exponential Backoff Fetch with Auth Error handling
-        async function fetchWithRetry(url, options, maxRetries = 5) {
-            let backoff = 1000;
-            for (let i = 0; i < maxRetries; i++) {
-                try {
-                    const response = await fetch(url, options);
-                    
-                    if (response.ok) return response;
-
-                    // Specific handling for 401/403 which might be transient injection issues
-                    if ((response.status === 401 || response.status === 403) && i < maxRetries - 1) {
-                        await new Promise(resolve => setTimeout(resolve, backoff));
-                        backoff *= 2;
-                        continue;
-                    }
-
-                    if (i === maxRetries - 1) throw new Error(`Response not OK: ${response.status}`);
-                } catch (err) {
-                    if (i === maxRetries - 1) throw err;
-                }
-                await new Promise(resolve => setTimeout(resolve, backoff));
-                backoff *= 2;
-            }
-        }
-
-        // Image Generation Function
-        async function triggerImageGeneration(prompt, containerId, containerEl = null) {
-            const target = containerEl || document.getElementById(containerId);
-            if (!target) return;
-
+        // Inisialisasi Auth Terlebih Dahulu (Aturan 3)
+        const initAuthAndData = async () => {
             try {
-                const response = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ instances: { prompt: prompt }, parameters: { sampleCount: 1 } })
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'siteContent', 'main');
+                        // Aturan 2: No Complex Queries, Fetch Simple
+                        onSnapshot(docRef, (snap) => {
+                            if (snap.exists()) {
+                                siteData = snap.data();
+                                applyDataToUI();
+                            }
+                        }, (err) => console.error("Firestore error:", err));
+                    }
                 });
-                const data = await response.json();
-                if (data.predictions?.[0]?.bytesBase64Encoded) {
-                    const imgUrl = `data:image/png;base64,${data.predictions[0].bytesBase64Encoded}`;
-                    const imgKey = target.getAttribute('data-img-db');
-                    const btnHtml = `<button class="edit-img-btn" onclick="openImgModal('${imgKey}')"><i data-lucide="camera"></i></button>`;
-                    target.innerHTML = `<img src="${imgUrl}" class="w-full h-full object-cover" alt="AI Visual">` + btnHtml;
-                    if (window.lucide) window.lucide.createIcons();
-                }
             } catch (err) {
-                console.error("AI Error", err);
-                if (target) {
-                    target.innerHTML += `<div class="absolute inset-0 bg-navy/20 flex items-center justify-center text-[10px] text-white">Visual Auth Error (401) - Retrying...</div>`;
-                }
-            }
-        }
-
-        // Expose function globally
-        window.triggerImageGeneration = triggerImageGeneration;
-
-        // Auth
-        const initAuth = async () => {
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                await signInWithCustomToken(auth, __initial_auth_token);
-            } else {
-                await signInAnonymously(auth);
+                console.error("Auth error:", err);
             }
         };
 
-        onAuthStateChanged(auth, (user) => {
-            currentAuth = user;
-            if (user) loadAllData();
-        });
-
-        // Load Data (Texts + Image Prompts)
-        const loadAllData = () => {
-            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'siteContent', 'main');
-            onSnapshot(docRef, (snapshot) => {
-                if (snapshot.exists()) {
-                    siteData = snapshot.data();
-                    updateUIWithData();
-                }
-            });
-        };
-
-        const updateUIWithData = () => {
-            // Update Texts
+        const applyDataToUI = () => {
             Object.keys(siteData).forEach(key => {
                 const el = document.querySelector(`[data-db="${key}"]`);
                 if (el) el.innerHTML = siteData[key];
                 
-                // If it's an image prompt, trigger regeneration if changed
-                if (key.startsWith('img-')) {
+                if (key.endsWith('-url')) {
                     const container = document.querySelector(`[data-img-db="${key}"]`);
                     if (container) {
-                        const existingImg = container.querySelector(`img`);
-                        if (!existingImg) triggerImageGeneration(siteData[key], null, container);
+                        const img = container.querySelector('img');
+                        if (img) img.src = siteData[key];
                     }
                 }
             });
         };
 
-        // Admin Actions
-        window.promptAdminLogin = () => document.getElementById('login-modal').classList.remove('hidden');
-        window.closeAdminModal = () => document.getElementById('login-modal').classList.add('hidden');
-        
+        // Simpan Semua Perubahan
+        window.saveAllChanges = async () => {
+            if (!auth.currentUser) {
+                alert("Anda belum terautentikasi.");
+                return;
+            }
+            
+            const btn = document.getElementById('save-btn');
+            btn.innerText = "MENYIMPAN...";
+            
+            const newData = {...siteData};
+            document.querySelectorAll('[data-db]').forEach(el => {
+                newData[el.getAttribute('data-db')] = el.innerHTML;
+            });
+            
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'siteContent', 'main');
+                await setDoc(docRef, newData, { merge: true });
+                btn.innerText = "BERHASIL!";
+                setTimeout(() => btn.innerText = "SIMPAN PERUBAHAN", 2000);
+            } catch (err) {
+                alert("Gagal simpan: Pastikan config Firebase Anda benar.");
+                btn.innerText = "GAGAL";
+            }
+        };
+
+        initAuthAndData();
+    </script>
+
+    <script>
+        // UI & Navigasi (Global)
+        function showPage(pageId) {
+            const pages = ['beranda', 'tentang-kami', 'berita', 'seksi-paud', 'seksi-sarpras', 'seksi-dikmas'];
+            pages.forEach(p => {
+                const el = document.getElementById('page-' + p);
+                if (el) el.classList.remove('page-active');
+            });
+            const target = document.getElementById('page-' + pageId);
+            if (target) target.classList.add('page-active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        window.promptAdminLogin = () => {
+            document.getElementById('login-modal').classList.remove('hidden');
+        };
+
+        window.closeAdminModal = () => {
+            document.getElementById('login-modal').classList.add('hidden');
+            document.getElementById('admin-pin').value = '';
+        };
+
         window.validateAdminPin = () => {
-            if (document.getElementById('admin-pin').value === "1234") {
+            const pin = document.getElementById('admin-pin').value;
+            if (pin === "1234") {
                 document.body.classList.add('admin-mode-active');
                 document.getElementById('admin-toolbar').classList.remove('hidden');
                 document.getElementById('main-nav').style.top = "40px";
@@ -406,99 +382,29 @@
 
         window.logoutAdmin = () => window.location.reload();
 
+        // Gambar UI
+        let currentImgKey = null;
         window.openImgModal = (key) => {
-            currentEditingImgKey = key;
-            document.getElementById('new-img-prompt').value = siteData[key] || "";
-            document.getElementById('img-prompt-modal').classList.remove('hidden');
+            currentImgKey = key;
+            document.getElementById('img-url-modal').classList.remove('hidden');
         };
-
-        window.closeImgModal = () => document.getElementById('img-prompt-modal').classList.add('hidden');
-
-        window.applyImgPrompt = async () => {
-            const prompt = document.getElementById('new-img-prompt').value;
-            if (!prompt) return;
-            
-            siteData[currentEditingImgKey] = prompt;
-            const container = document.querySelector(`[data-img-db="${currentEditingImgKey}"]`);
-            if (container) {
-                container.innerHTML = `<div class="flex items-center justify-center w-full h-full text-white animate-pulse">Membuat Gambar AI...</div>` + 
-                                     `<button class="edit-img-btn" onclick="openImgModal('${currentEditingImgKey}')"><i data-lucide="camera"></i></button>`;
-                if (window.lucide) window.lucide.createIcons();
-                triggerImageGeneration(prompt, null, container);
+        window.closeImgModal = () => {
+            document.getElementById('img-url-modal').classList.add('hidden');
+        };
+        window.applyImgUrl = () => {
+            const url = document.getElementById('new-img-url').value;
+            if (url) {
+                const container = document.querySelector(`[data-img-db="${currentImgKey}"]`);
+                if (container) {
+                    const img = container.querySelector('img');
+                    if (img) img.src = url;
+                }
             }
             window.closeImgModal();
         };
 
-        window.saveAllChanges = async () => {
-            if (!currentAuth) return;
-            const btn = document.getElementById('save-btn');
-            const originalText = btn.innerText;
-            btn.innerText = "MENYIMPAN...";
-
-            const finalData = { ...siteData };
-            document.querySelectorAll('[data-db]').forEach(el => {
-                finalData[el.getAttribute('data-db')] = el.innerHTML;
-            });
-
-            try {
-                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'siteContent', 'main');
-                await setDoc(docRef, finalData, { merge: true });
-                btn.innerText = "TERSIMPAN!";
-                setTimeout(() => btn.innerText = originalText, 2000);
-            } catch (err) {
-                console.error("Save Error", err);
-                btn.innerText = "GAGAL SIMPAN";
-                setTimeout(() => btn.innerText = originalText, 2000);
-            }
-        };
-
-        initAuth();
-    </script>
-
-    <script>
-        // Basic Navigation
-        function showPage(pageId) {
-            const pages = ['beranda', 'tentang-kami', 'berita', 'seksi-generic'];
-            pages.forEach(p => document.getElementById('page-' + p).classList.remove('page-active'));
-            
-            let targetPage = 'page-' + pageId;
-            if (pageId.startsWith('seksi-')) {
-                targetPage = 'page-seksi-generic';
-                const titles = { 'seksi-paud': 'PAUD', 'seksi-sarpras': 'Sarana Prasarana', 'seksi-dikmas': 'Pendidikan Masyarakat' };
-                document.getElementById('seksi-title').innerHTML = "Bidang Pembinaan " + titles[pageId];
-            }
-            
-            document.getElementById(targetPage).classList.add('page-active');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
         window.onload = () => {
             if (window.lucide) window.lucide.createIcons();
-            
-            const defaults = {
-                'img-hero': "Modern elegant government building for education, blue and gold style, professional digital art",
-                'img-kabid': "Professional person in formal attire, office background, friendly and academic digital illustration",
-                'img-news-1': "Workshop education classroom digital art",
-                'img-news-2': "Exam students hall digital illustration",
-                'img-news-3': "Modern building construction school digital art",
-                'img-seksi-val': "Classroom learning activities digital illustration"
-            };
-            
-            // Wait for module to initialize and check if triggerImageGeneration is available
-            const checkAndTrigger = () => {
-                if (typeof window.triggerImageGeneration === 'function') {
-                    document.querySelectorAll('[data-img-db]').forEach(container => {
-                        if (container.children.length <= 1) {
-                            const key = container.getAttribute('data-img-db');
-                            window.triggerImageGeneration(defaults[key] || "Clean professional educational background", null, container);
-                        }
-                    });
-                } else {
-                    setTimeout(checkAndTrigger, 1000);
-                }
-            };
-            
-            setTimeout(checkAndTrigger, 1500);
         };
     </script>
 </body>
