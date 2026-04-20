@@ -3,409 +3,569 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bidang Pembinaan PAUD dan Dikmas - Official Website</title>
+    <title>Profil Bidang Pembinaan PAUD & Dikmas</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        :root {
-            --navy: #0f172a;
-            --gold: #fbbf24;
-            --gold-light: #fef3c7;
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; margin: 0; padding: 0; }
+        .page-content { transition: opacity 0.4s ease-in-out; }
+        .nav-active { border-bottom: 2px solid #2563eb; color: #2563eb; font-weight: 700; }
+        .admin-only { display: none; }
+        body.is-admin .admin-only { display: inline-flex; }
+        .loading-overlay { position: fixed; inset: 0; background: white; z-index: 9999; display: flex; align-items: center; justify-content: center; transition: opacity 0.5s; }
+        
+        .avatar-frame { position: relative; width: 80px; height: 80px; border-radius: 50%; overflow: hidden; border: 3px solid white; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); background: #f1f5f9; }
+        .avatar-frame img { width: 100%; height: 100%; object-fit: cover; }
+
+        .btn-edit-floating {
+            padding: 4px; border-radius: 6px; background: rgba(37, 99, 235, 0.1);
+            color: #2563eb; transition: all 0.2s; margin-left: 8px; vertical-align: middle; cursor: pointer;
         }
-        body {
-            font-family: 'Inter', sans-serif;
-            scroll-behavior: smooth;
+        .btn-edit-floating:hover { background: #2563eb; color: white; }
+        
+        @keyframes ai-pulse {
+            0% { box-shadow: 0 0 0 0 rgba(147, 51, 234, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(147, 51, 234, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(147, 51, 234, 0); }
         }
-        .font-heading {
-            font-family: 'Playfair Display', serif;
+        .ai-feature-btn {
+            background: linear-gradient(135deg, #9333ea, #2563eb);
+            color: white; animation: ai-pulse 2s infinite;
         }
-        .glass-nav {
-            background: rgba(15, 23, 42, 0.95);
-            backdrop-filter: blur(10px);
-        }
-        .hero-gradient {
-            background: linear-gradient(to right, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.4));
-        }
-        .page-content {
-            display: none;
-            opacity: 0;
-            transition: opacity 0.4s ease-in-out;
-        }
-        .page-active {
-            display: block;
-            opacity: 1;
-        }
-        /* Gaya Edit Admin */
-        [contenteditable="true"] {
-            outline: 1px dashed #fbbf24;
-            padding: 2px;
-            cursor: text;
-        }
-        [contenteditable="true"]:focus {
-            background: rgba(251, 191, 36, 0.1);
-            outline: 2px solid #fbbf24;
-        }
-        .edit-img-btn {
-            display: none;
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            z-index: 50;
-            background: #fbbf24;
-            color: #0f172a;
-            padding: 10px;
-            border-radius: 50%;
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-        }
-        .admin-mode-active .edit-img-btn {
-            display: block;
-        }
-        .img-container {
-            position: relative;
-            overflow: hidden;
-            background: #e2e8f0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .org-line {
-            width: 2px;
-            background: #fbbf24;
-            height: 40px;
-        }
+
+        .profile-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border-left: 4px solid #2563eb; }
+        .profile-card:hover { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        
+        .slide-enter { animation: fadeIn 0.8s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900">
+<body class="bg-slate-50 text-slate-900" id="main-body">
 
-    <!-- Modal Login Admin -->
-    <div id="login-modal" class="hidden fixed inset-0 z-[200] flex items-center justify-center p-4 bg-navy/80 backdrop-blur-sm">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 text-center">
-            <i data-lucide="lock" class="w-12 h-12 text-gold mx-auto mb-4"></i>
-            <h3 class="text-2xl font-heading mb-6 text-navy">Akses Administrator</h3>
-            <input type="password" id="admin-pin" placeholder="Masukkan PIN (1234)" class="w-full px-4 py-3 rounded-xl border mb-6 text-center text-xl tracking-widest outline-none focus:border-gold">
-            <div id="login-error" class="hidden text-red-500 text-xs mb-4">PIN Salah, silakan coba lagi.</div>
-            <div class="flex space-x-3">
-                <button onclick="closeAdminModal()" class="flex-1 py-3 text-slate-500 hover:bg-slate-100 rounded-lg">Batal</button>
-                <button onclick="validateAdminPin()" class="flex-1 py-3 bg-navy text-white rounded-xl hover:bg-slate-800">Masuk</button>
-            </div>
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-overlay">
+        <div class="flex flex-col items-center gap-4 text-center">
+            <div class="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+            <p class="text-slate-500 font-medium animate-pulse">Menghubungkan ke Cloud Database...</p>
         </div>
     </div>
 
-    <!-- Modal Edit Link Gambar -->
-    <div id="img-url-modal" class="hidden fixed inset-0 z-[210] flex items-center justify-center p-4 bg-navy/80 backdrop-blur-sm">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8">
-            <h3 class="text-xl font-bold text-navy mb-4 flex items-center"><i data-lucide="link" class="mr-2"></i> Ganti Tautan Gambar</h3>
-            <p class="text-slate-500 text-sm mb-4">Masukkan URL/Link gambar yang ingin ditampilkan:</p>
-            <textarea id="new-img-url" rows="3" class="w-full p-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-gold mb-6" placeholder="https://images.unsplash.com/..."></textarea>
-            <div class="flex space-x-3">
-                <button onclick="closeImgModal()" class="flex-1 py-3 font-bold text-slate-500">Batal</button>
-                <button onclick="applyImgUrl()" class="flex-1 py-3 font-bold bg-gold text-navy rounded-xl uppercase">Terapkan Gambar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Toolbar Admin -->
-    <div id="admin-toolbar" class="hidden fixed top-0 left-0 w-full bg-gold text-navy z-[100] px-4 py-2 flex justify-between items-center font-bold text-xs shadow-lg">
-        <div class="flex items-center"><i data-lucide="shield-check" class="mr-2 w-4 h-4"></i> MODE ADMIN AKTIF</div>
-        <div class="flex space-x-4">
-            <button onclick="saveAllChanges()" id="save-btn" class="bg-navy text-white px-6 py-1 rounded hover:bg-slate-800 transition">SIMPAN PERUBAHAN</button>
-            <button onclick="logoutAdmin()" class="bg-red-600 text-white px-6 py-1 rounded hover:bg-red-700 transition">KELUAR</button>
-        </div>
-    </div>
-
-    <!-- Navigasi Utama -->
-    <nav class="fixed w-full z-50 glass-nav border-b border-slate-800 text-white transition-all duration-300" id="main-nav">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-20 items-center">
-                <div class="flex items-center space-x-3 cursor-pointer" onclick="showPage('beranda')">
-                    <div class="w-10 h-10 bg-gold rounded-lg flex items-center justify-center text-navy"><i data-lucide="graduation-cap"></i></div>
-                    <div>
-                        <h1 class="text-sm font-bold uppercase tracking-wider" data-db="site-title">Bidang Pembinaan</h1>
-                        <p class="text-xs text-gold uppercase" data-db="site-subtitle">PAUD & DIKMAS</p>
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center space-x-2">
+                    <div class="flex items-center cursor-pointer" onclick="window.showPage('home')">
+                        <div class="bg-blue-600 p-2 rounded-lg h-10 w-10 flex items-center justify-center" id="nav-logo-container">
+                            <i data-lucide="graduation-cap" class="text-white w-6 h-6"></i>
+                        </div>
+                        <span class="font-bold text-xl tracking-tight hidden sm:block uppercase ml-2" id="nav-title-display">PAUD & DIKMAS</span>
                     </div>
+                    <button id="btn-edit-nav" class="admin-only btn-edit-floating hidden" onclick="window.openEdit('nav_settings')">
+                        <i data-lucide="edit-3" class="w-3 h-3"></i>
+                    </button>
                 </div>
                 
-                <div class="hidden md:flex space-x-8 text-sm font-medium uppercase items-center">
-                    <a href="javascript:void(0)" onclick="showPage('beranda')" class="hover:text-gold transition" data-db="menu-home">Beranda</a>
-                    <a href="javascript:void(0)" onclick="showPage('tentang-kami')" class="hover:text-gold transition" data-db="menu-about">Tentang Kami</a>
-                    <div class="group relative cursor-pointer">
-                        <span class="hover:text-gold transition" data-db="menu-seksi">Seksi <i data-lucide="chevron-down" class="inline w-4 h-4"></i></span>
-                        <div class="absolute top-full left-0 w-48 bg-slate-900 border border-slate-700 rounded-md shadow-xl hidden group-hover:block p-2 mt-1">
-                            <a href="javascript:void(0)" onclick="showPage('seksi-paud')" class="block px-4 py-2 hover:bg-slate-800 rounded">PAUD</a>
-                            <a href="javascript:void(0)" onclick="showPage('seksi-sarpras')" class="block px-4 py-2 hover:bg-slate-800 rounded">Sarpras</a>
-                            <a href="javascript:void(0)" onclick="showPage('seksi-dikmas')" class="block px-4 py-2 hover:bg-slate-800 rounded">Dikmas</a>
-                        </div>
+                <div class="hidden lg:flex space-x-6 font-medium" id="nav-container"></div>
+
+                <div class="flex items-center gap-4">
+                    <button id="btn-user-mgmt" onclick="window.openEdit('user_mgmt')" class="admin-only hidden items-center gap-1 bg-amber-50 text-amber-700 px-3 py-1 rounded-full text-[10px] font-bold border border-amber-200 hover:bg-amber-100 transition-all uppercase tracking-wider">
+                        <i data-lucide="users" class="w-3 h-3"></i> Manajemen User
+                    </button>
+
+                    <div id="admin-indicator" class="hidden items-center gap-2 bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-xs font-bold border border-blue-200">
+                        <span class="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></span>
+                        <span id="role-display" class="uppercase">ADMIN</span>
+                        <button onclick="window.logoutAdmin()" class="ml-2 hover:text-red-600" title="Keluar"><i data-lucide="log-out" class="w-3 h-3"></i></button>
                     </div>
-                    <a href="javascript:void(0)" onclick="showPage('berita')" class="hover:text-gold transition" data-db="menu-news">Berita</a>
-                    <button id="lock-icon" onclick="promptAdminLogin()" class="text-slate-400 hover:text-white transition ml-4"><i data-lucide="lock" class="w-4 h-4"></i></button>
+                    
+                    <div class="lg:hidden">
+                        <button id="mobile-menu-btn" class="p-2 text-slate-600" onclick="document.getElementById('mobile-menu').classList.toggle('hidden')">
+                            <i data-lucide="menu"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
+        <div id="mobile-menu" class="hidden lg:hidden bg-white border-t px-4 py-4 space-y-4 shadow-lg"></div>
     </nav>
 
-    <!-- HALAMAN: BERANDA -->
-    <main id="page-beranda" class="page-content page-active">
-        <section class="relative min-h-screen flex items-center pt-20 overflow-hidden">
-            <div class="absolute inset-0 z-0 img-container" data-img-db="img-hero-url">
-                <button class="edit-img-btn" onclick="openImgModal('img-hero-url')"><i data-lucide="camera"></i></button>
-                <img src="https://images.unsplash.com/photo-1541339907198-e08756ebafe3?q=80&w=2070" class="w-full h-full object-cover">
-            </div>
-            <div class="absolute inset-0 hero-gradient z-10"></div>
-            <div class="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-white">
-                <span class="inline-block px-3 py-1 bg-gold/20 text-gold rounded-full text-xs font-bold uppercase mb-4" data-db="hero-label">Pemerintah Kabupaten</span>
-                <h2 class="text-4xl md:text-6xl font-heading mb-6 leading-tight" data-db="hero-title">Website Resmi Bidang PAUD & Dikmas</h2>
-                <p class="text-lg md:text-xl text-slate-300 border-l-4 border-gold pl-6 italic mb-10" data-db="hero-tagline">"Unggul dalam Prestasi, Teguh Berbudaya, Berkarakter dan Berakhlak Mulia"</p>
-                <div class="flex space-x-4">
-                    <button onclick="showPage('tentang-kami')" class="bg-gold text-navy px-8 py-4 rounded-lg font-bold">Tentang Kami</button>
-                </div>
-            </div>
-        </section>
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-[70vh]" id="app-content"></main>
 
-        <section class="py-24 bg-white">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="grid md:grid-cols-2 gap-16 items-center">
-                    <div class="img-container rounded-2xl shadow-2xl aspect-[4/5]" data-img-db="img-kabid-url">
-                        <button class="edit-img-btn" onclick="openImgModal('img-kabid-url')"><i data-lucide="camera"></i></button>
-                        <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=1974" class="w-full h-full object-cover">
-                    </div>
-                    <div>
-                        <h3 class="text-gold font-bold uppercase tracking-widest mb-2" data-db="welcome-label">Sambutan Kepala Bidang</h3>
-                        <h2 class="text-3xl md:text-4xl font-heading text-navy mb-6" data-db="welcome-title">Membangun Fondasi Masa Depan Bangsa</h2>
-                        <div class="text-slate-600 leading-relaxed space-y-4" data-db="welcome-text">
-                            <p>Selamat datang di portal informasi resmi. Kami berdedikasi untuk menciptakan ekosistem pendidikan berkualitas.</p>
-                        </div>
-                        <div class="mt-8 pt-8 border-t border-slate-100">
-                            <p class="font-bold text-navy" data-db="kabid-name">NAMA KEPALA BIDANG, S.Pd., M.Pd.</p>
-                            <p class="text-sm text-slate-500" data-db="kabid-nip">NIP. 19800000 200000 1 001</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 py-12 mt-16" id="app-footer"></footer>
 
-    <!-- HALAMAN: TENTANG KAMI -->
-    <main id="page-tentang-kami" class="page-content py-32 bg-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 class="text-4xl font-heading text-navy mb-16" data-db="about-title">Struktur Organisasi</h2>
-            <div class="bg-navy rounded-3xl p-12 text-white shadow-2xl flex flex-col items-center">
-                <div class="w-64 bg-white p-6 rounded-xl text-navy shadow-xl border-t-4 border-gold">
-                    <p class="text-[10px] font-bold text-gold uppercase mb-1">Kepala Bidang</p>
-                    <h4 class="font-bold" data-db="org-kabid-name">Nama Kepala Bidang</h4>
-                </div>
-                <div class="org-line"></div>
-                <div class="flex flex-wrap justify-center gap-8">
-                    <div class="w-48 bg-white/10 p-4 rounded-xl border border-white/20">
-                        <p class="text-[10px] font-bold text-gold uppercase mb-1">Kasi PAUD</p>
-                        <h4 class="font-bold text-xs" data-db="org-kasi-paud">Nama Kasi PAUD</h4>
-                    </div>
-                    <div class="w-48 bg-white/10 p-4 rounded-xl border border-white/20">
-                        <p class="text-[10px] font-bold text-gold uppercase mb-1">Kasi Sarpras</p>
-                        <h4 class="font-bold text-xs" data-db="org-kasi-sarpras">Nama Kasi Sarpras</h4>
-                    </div>
-                    <div class="w-48 bg-white/10 p-4 rounded-xl border border-white/20">
-                        <p class="text-[10px] font-bold text-gold uppercase mb-1">Kasi Dikmas</p>
-                        <h4 class="font-bold text-xs" data-db="org-kasi-dikmas">Nama Kasi Dikmas</h4>
-                    </div>
-                </div>
+    <!-- Modal: Login -->
+    <div id="login-modal" class="fixed inset-0 bg-black/60 z-[100] hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-md p-8 shadow-2xl">
+            <h3 class="text-2xl font-bold mb-6 flex items-center gap-2"><i data-lucide="lock" class="text-blue-600"></i> Akses Pengelola</h3>
+            <div class="space-y-4">
+                <input type="text" id="login-user" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Username">
+                <input type="password" id="login-pass" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Password">
+                <button onclick="window.attemptLogin()" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition shadow-lg">Masuk</button>
+                <button onclick="window.closeModal('login-modal')" class="w-full text-slate-500 text-sm py-2">Batal</button>
             </div>
         </div>
-    </main>
+    </div>
 
-    <!-- HALAMAN: BERITA -->
-    <main id="page-berita" class="page-content py-32 bg-slate-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 class="text-4xl font-heading text-navy text-center mb-16" data-db="news-title">Berita Utama</h2>
-            <div class="grid md:grid-cols-3 gap-8">
-                <div class="bg-white rounded-2xl overflow-hidden shadow-sm">
-                    <div class="aspect-video img-container" data-img-db="img-news1-url">
-                        <button class="edit-img-btn" onclick="openImgModal('img-news1-url')"><i data-lucide="camera"></i></button>
-                        <img src="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=2070" class="w-full h-full object-cover">
-                    </div>
-                    <div class="p-6">
-                        <h3 class="text-xl font-bold text-navy mb-4" data-db="news1-title">Judul Berita 1</h3>
-                        <p class="text-sm text-slate-500" data-db="news1-excerpt">Deskripsi singkat berita...</p>
-                    </div>
-                </div>
+    <!-- Modal: Editor -->
+    <div id="edit-modal" class="fixed inset-0 bg-black/60 z-[100] hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-2xl p-8 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6 border-b pb-4">
+                <h3 class="text-2xl font-bold" id="edit-title">Edit Konten</h3>
+                <button onclick="window.closeModal('edit-modal')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x"></i></button>
+            </div>
+            <div id="edit-fields" class="space-y-6"></div>
+            <div class="flex gap-4 mt-8 sticky bottom-0 bg-white pt-4 border-t">
+                <button onclick="window.saveChanges()" id="btn-save" class="flex-1 bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 shadow-xl disabled:opacity-50">Simpan Perubahan</button>
+                <button onclick="window.closeModal('edit-modal')" class="flex-1 bg-slate-100 text-slate-600 py-3 rounded-lg font-bold hover:bg-slate-200">Batal</button>
             </div>
         </div>
-    </main>
+    </div>
 
-    <footer class="bg-slate-950 text-white py-12 text-center">
-        <p class="text-xs font-bold text-slate-500 uppercase" data-db="footer-copy">© 2026 Bidang Pembinaan PAUD & Dikmas. Seluruh Hak Cipta Dilindungi.</p>
-    </footer>
-
-    <!-- Firebase SDK (Version 11.6.1) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, collection, onSnapshot, deleteDoc, addDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-        // --- KONFIGURASI UNTUK GITHUB PAGES ---
-        // Jika Anda menggunakan akun Firebase sendiri, ganti objek di bawah ini.
-        let firebaseConfig = {};
-        
-        try {
-            // Cek apakah variabel lingkungan tersedia (Lingkungan Canvas)
-            if (typeof __firebase_config !== 'undefined') {
-                firebaseConfig = JSON.parse(__firebase_config);
-            } else {
-                // FALLBACK: Konfigurasi default (Ganti ini jika ingin menggunakan database pribadi di GitHub)
-                firebaseConfig = {
-                    apiKey: "YOUR_API_KEY",
-                    authDomain: "YOUR_PROJECT.firebaseapp.com",
-                    projectId: "YOUR_PROJECT_ID",
-                    storageBucket: "YOUR_PROJECT.appspot.com",
-                    messagingSenderId: "YOUR_SENDER_ID",
-                    appId: "YOUR_APP_ID"
-                };
-            }
-        } catch (e) {
-            console.error("Gagal memuat konfigurasi Firebase");
-        }
+        // ==========================================
+        // --- 1. CONFIGURATION ---
+        // ==========================================
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "AIzaSyBg1gWCIVxOE4JWr4tEJxs-GH9ff4jx5oE",
+  authDomain: "pauddikmas-a8c3b.firebaseapp.com",
+  projectId: "pauddikmas-a8c3b",
+  storageBucket: "pauddikmas-a8c3b.firebasestorage.app",
+  messagingSenderId: "940015031908",
+  appId: "1:940015031908:web:6cac7280253fe58341f171",
+  measurementId: "G-XGH7YLVVQM"
+        };
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'paud-dikmas-profile-01'; 
+        const apiKeyGemini = ""; 
 
         const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
         const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // Path Konfigurasi (Sesuai Aturan Sistem)
+        const pathSettings = `artifacts/${appId}/public/data/settings/main`;
+        const pathNews = `artifacts/${appId}/public/data/news`;
+        const pathUsers = `artifacts/${appId}/public/data/users`;
+
+        // ==========================================
+        // --- 2. GLOBAL STATE ---
+        // ==========================================
+        let isAdmin = false;
+        let userRole = ''; 
+        let userPermissions = []; 
+        let currentPage = 'home';
+        let editingContext = null;
+        let currentSlide = 0;
+
+        let siteData = {
+            home: { 
+                navTitle: "PAUD & DIKMAS", navLogo: "", 
+                heroSlides: [{ title: "Membangun Generasi Emas", subtitle: "Layanan pendidikan non-formal yang berkualitas.", image: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&q=80" }], 
+                profileTitle: "Profil Bidang", profileText: "Bidang Pembinaan PAUD dan Pendidikan Masyarakat mengoordinasikan penyelenggaraan pendidikan non-formal yang berkualitas.", 
+                visiMisiTitle: "Visi & Misi", visiMisi: ["Meningkatkan akses layanan.", "Optimalisasi tata kelola."], 
+                strukturTitle: "Struktur Organisasi", kabidName: "Nama Kepala Bidang", kabidPhoto: "https://api.dicebear.com/7.x/avataaars/svg?seed=kabid", 
+                sections: [
+                    { id: 'paud', name: 'Seksi PAUD', kasiName: 'Kasi PAUD', kasiNip: '-', kasiPhoto: '', staff: [], desc: 'Pembinaan PAUD.', ctaTitle: '', ctaLink: '#' },
+                    { id: 'sarpras', name: 'Seksi Sarpras', kasiName: 'Kasi Sarpras', kasiNip: '-', kasiPhoto: '', staff: [], desc: 'Manajemen sarana.', ctaTitle: '', ctaLink: '#' },
+                    { id: 'dikmas', name: 'Seksi Dikmas', kasiName: 'Kasi Dikmas', kasiNip: '-', kasiPhoto: '', staff: [], desc: 'Pendidikan kesetaraan.', ctaTitle: '', ctaLink: '#' }
+                ],
+                kabidBanner: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80",
+                kabidMotto: "Berakhlak, Profesional, dan Inovatif.",
+                kabidSambutan: "Selamat datang di portal informasi resmi Bidang Pembinaan PAUD dan Dikmas.",
+                kabidBiodata: { nama: "Nama Lengkap", nip: "-", jabatan: "Kepala Bidang", pendidikan: "-", bio: "-" },
+                kabidPrograms: [{ title: "Digitalisasi PAUD", desc: "Meningkatkan kualitas data." }],
+                footerContact: "Dinas Pendidikan\nKota Anda, Indonesia", 
+                footerLinks: [{ label: "Kemdikbud", url: "https://kemdikbud.go.id" }]
+            },
+            news: [],
+            users: []
+        };
+
+        // ==========================================
+        // --- 3. CORE LOGIC (REGISTER TO WINDOW) ---
+        // ==========================================
+
+        window.canEdit = (perm) => {
+            if (!isAdmin) return false;
+            if (userRole === 'super_admin') return true;
+            return (userPermissions || []).includes(perm);
+        };
+
+        window.showPage = (id) => { 
+            currentPage = id; 
+            window.renderPage(); 
+            window.scrollTo({ top: 0, behavior: 'smooth' }); 
+        };
+
+        window.openModal = (id) => { 
+            const el = document.getElementById(id); 
+            if (el) { el.classList.remove('hidden'); el.classList.add('flex'); } 
+        };
+
+        window.closeModal = (id) => { 
+            const el = document.getElementById(id); 
+            if (el) { el.classList.add('hidden'); el.classList.remove('flex'); } 
+        };
+
+        window.attemptLogin = () => {
+            const u = document.getElementById('login-user').value; 
+            const p = document.getElementById('login-pass').value;
+            const found = siteData.users.find(x => x.username === u && x.password === p);
+            if (found) { 
+                isAdmin = true; 
+                userRole = found.role; 
+                userPermissions = found.permissions || []; 
+                document.getElementById('main-body').classList.add('is-admin'); 
+                window.closeModal('login-modal'); 
+                window.renderPage(); 
+            } else {
+                alert('Login Gagal! Akun tidak ditemukan.');
+            }
+        };
+
+        window.logoutAdmin = () => { 
+            isAdmin = false; 
+            userRole = ''; 
+            userPermissions = []; 
+            document.getElementById('main-body').classList.remove('is-admin'); 
+            window.renderPage(); 
+        };
+
+        // ==========================================
+        // --- 4. VIEWS ---
+        // ==========================================
+
+        const renderHeroSlide = (index) => {
+            const slides = siteData.home.heroSlides || [];
+            const slide = slides[index] || slides[0];
+            return `<div class="absolute inset-0 slide-enter"><div class="absolute inset-0 bg-cover bg-center" style="background-image: url('${slide.image}');"></div><div class="absolute inset-0 bg-blue-900/60 backdrop-blur-[1px]"></div><div class="relative h-full flex items-center p-8 md:p-16 max-w-4xl text-white"><div><h1 class="text-4xl md:text-5xl font-bold mb-4 leading-tight">${slide.title}</h1><p class="text-lg opacity-90">${slide.subtitle}</p></div></div></div>`;
+        };
+
+        const renderHomeView = () => {
+            const { home } = siteData;
+            const hasPerm = window.canEdit('home');
+            const editBtn = (ctx) => hasPerm ? `<button class="btn-edit-floating" onclick="window.openEdit('${ctx}')"><i data-lucide="edit-3" class="w-4 h-4"></i></button>` : '';
+            return `<section class="page-content animate-fade-in">
+                <div class="relative rounded-3xl overflow-hidden bg-blue-900 mb-12 min-h-[400px] shadow-xl group" id="hero-slider-container">
+                    ${renderHeroSlide(currentSlide)}
+                    ${hasPerm ? `<button class="admin-only absolute top-4 right-4 z-20 bg-white/20 p-2 rounded-lg text-white" onclick="window.openEdit('home_hero')"><i data-lucide="layers" class="w-4 h-4"></i></button>` : ''}
+                </div>
+                <div class="grid md:grid-cols-2 gap-8 mb-16">
+                    <div class="bg-white p-8 rounded-2xl shadow-sm border"><h2 class="text-2xl font-bold mb-4 flex items-center text-blue-900"><i data-lucide="info" class="text-blue-600 mr-2"></i> ${home.profileTitle} ${editBtn('home_profile')}</h2><p class="text-slate-600 leading-relaxed">${home.profileText}</p></div>
+                    <div class="bg-white p-8 rounded-2xl shadow-sm border"><h2 class="text-2xl font-bold mb-4 flex items-center text-blue-900"><i data-lucide="target" class="text-blue-600 mr-2"></i> ${home.visiMisiTitle} ${editBtn('home_visimisi')}</h2><ul class="space-y-3 text-slate-600">${(home.visiMisi || []).map((v, i) => `<li><b>${i+1}.</b> ${v}</li>`).join('')}</ul></div>
+                </div>
+                <div class="bg-white p-8 md:p-12 rounded-3xl shadow-sm border text-center mb-16 relative overflow-hidden">
+                    <h2 class="text-3xl font-bold mb-16 text-blue-900">${home.strukturTitle} ${editBtn('home_struktur')}</h2>
+                    <div class="flex flex-col items-center">
+                        <div class="mb-12">
+                            <div class="avatar-frame ring-4 ring-blue-100 mb-3 mx-auto shadow-lg"><img src="${home.kabidPhoto || 'https://api.dicebear.com/7.x/avataaars/svg?seed=kabid'}"></div>
+                            <div class="bg-blue-700 text-white px-8 py-4 rounded-2xl shadow-lg min-w-[240px] font-bold text-lg cursor-pointer hover:bg-blue-800" onclick="window.showPage('kabid')">${home.kabidName}</div>
+                            <div class="h-12 w-px bg-slate-200 mx-auto"></div>
+                        </div>
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-12 w-full relative">
+                            <div class="hidden lg:block absolute top-0 left-1/2 -translate-x-1/2 w-2/3 h-px bg-slate-200"></div>
+                            ${(home.sections || []).map(sec => `
+                                <div class="flex flex-col items-center">
+                                    <div class="avatar-frame ring-4 ring-slate-50 mb-3"><img src="${sec.kasiPhoto || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + sec.id}"></div>
+                                    <div class="bg-slate-800 text-white p-4 rounded-xl shadow-md w-full cursor-pointer hover:bg-slate-700 transition-all" onclick="window.showPage('${sec.id}')">
+                                        <p class="text-[10px] uppercase opacity-60 font-bold mb-1">${sec.name}</p>
+                                        <p class="font-bold text-sm">${sec.kasiName}</p>
+                                    </div>
+                                </div>`).join('')}
+                        </div>
+                    </div>
+                </div>
+            </section>`;
+        };
+
+        const renderKabidView = () => {
+            const { home } = siteData;
+            const isSuper = window.canEdit('kabid');
+            return `<section class="page-content animate-fade-in">
+                <div class="relative rounded-3xl overflow-hidden mb-8 shadow-xl min-h-[350px] flex items-center">
+                    <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('${home.kabidBanner}');"></div>
+                    <div class="absolute inset-0 bg-gradient-to-r from-blue-900 via-blue-900/80 to-transparent"></div>
+                    <div class="relative z-10 w-full px-8 md:px-12 flex flex-col md:flex-row gap-8 items-center text-center md:text-left">
+                        <div class="avatar-frame !w-44 !h-44 ring-8 ring-white/10 shadow-2xl shrink-0"><img src="${home.kabidPhoto}" class="w-full h-full object-cover"></div>
+                        <div class="flex-grow">
+                            <div class="flex items-center justify-center md:justify-start gap-3 mb-2">
+                                <span class="bg-blue-600 text-white px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">Kepala Bidang</span>
+                                ${isSuper ? `<button class="p-2 bg-white/20 hover:bg-white/40 rounded-lg text-white transition-all" onclick="window.openEdit('kabid_sampul')"><i data-lucide="camera" class="w-4 h-4"></i></button>` : ''}
+                            </div>
+                            <h2 class="text-3xl md:text-5xl font-bold text-white mb-2">${home.kabidName}</h2>
+                            <p class="text-blue-100 text-lg font-medium opacity-90 max-w-2xl italic">"${home.kabidMotto}"</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="grid lg:grid-cols-3 gap-8 mb-12">
+                    <div class="lg:col-span-2 space-y-8">
+                        <div class="bg-white p-8 rounded-3xl border shadow-sm">
+                            <h3 class="text-2xl font-bold text-blue-900 mb-6 flex items-center gap-2"><i data-lucide="message-square" class="text-blue-600"></i> Sambutan Resmi ${isSuper ? `<button class="btn-edit-floating" onclick="window.openEdit('kabid_sambutan')"><i data-lucide="edit-3" class="w-4 h-4"></i></button>` : ''}</h3>
+                            <div class="text-slate-600 leading-relaxed italic whitespace-pre-line text-lg">${home.kabidSambutan}</div>
+                        </div>
+                        <div class="bg-white p-8 rounded-3xl border shadow-sm">
+                            <h3 class="text-2xl font-bold text-blue-900 mb-8 flex items-center justify-between"><span class="flex items-center gap-2"><i data-lucide="rocket" class="text-blue-600"></i> Program Prioritas</span>${isSuper ? `<button class="text-xs bg-blue-600 text-white px-4 py-2 rounded-xl font-bold shadow-sm" onclick="window.openEdit('kabid_programs')">Kelola Program</button>` : ''}</h3>
+                            <div class="grid md:grid-cols-2 gap-6">${(home.kabidPrograms || []).map(p => `<div class="p-6 bg-slate-50 rounded-2xl border-l-4 border-blue-600 shadow-sm"><h4 class="font-bold text-slate-800 mb-1 uppercase text-sm">${p.title}</h4><p class="text-xs text-slate-500">${p.desc}</p></div>`).join('')}</div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-8 rounded-3xl border shadow-sm h-fit sticky top-24">
+                        <h3 class="text-2xl font-bold text-blue-900 mb-6 flex items-center gap-2"><i data-lucide="user" class="text-blue-600"></i> Biodata Lengkap ${isSuper ? `<button class="btn-edit-floating" onclick="window.openEdit('kabid_biodata')"><i data-lucide="edit-3" class="w-4 h-4"></i></button>` : ''}</h3>
+                        <div class="space-y-4">
+                            <div class="border-b pb-2"><p class="text-[10px] uppercase text-slate-400 font-bold">Nama Lengkap</p><p class="font-bold text-slate-800">${home.kabidBiodata.nama}</p></div>
+                            <div class="border-b pb-2"><p class="text-[10px] uppercase text-slate-400 font-bold">NIP</p><p class="text-slate-700 font-medium">${home.kabidBiodata.nip}</p></div>
+                            <div class="border-b pb-2"><p class="text-[10px] uppercase text-slate-400 font-bold">Jabatan</p><p class="text-slate-700">${home.kabidBiodata.jabatan}</p></div>
+                            <div class="border-b pb-2"><p class="text-[10px] uppercase text-slate-400 font-bold">Pendidikan</p><p class="text-slate-700">${home.kabidBiodata.pendidikan}</p></div>
+                            <div class="pt-2"><p class="text-[10px] uppercase text-slate-400 font-bold mb-1">Motto Hidup</p><p class="text-sm text-slate-600 italic">${home.kabidBiodata.bio}</p></div>
+                        </div>
+                    </div>
+                </div>
+            </section>`;
+        };
+
+        const renderSectionView = (type) => {
+            const section = siteData.home.sections.find(s => s.id === type);
+            if (!section) return `<div class="p-12 text-center">Data tidak ditemukan.</div>`;
+            const hasPerm = window.canEdit(type);
+            const isSuper = window.canEdit(type); // Biasakan super admin untuk struktur seksi
+            return `<section class="page-content animate-fade-in">
+                <div class="bg-blue-900 text-white rounded-3xl p-8 md:p-12 mb-8 shadow-lg min-h-[300px] flex items-center relative overflow-hidden">
+                    <div class="relative z-10 w-full">
+                        <h2 class="text-3xl md:text-4xl font-bold uppercase mb-4">${section.name} ${hasPerm ? `<button class="btn-edit-floating text-white/50" onclick="window.openEdit('section_desc', '${type}')"><i data-lucide="edit-3" class="w-5 h-5"></i></button>` : ''}</h2>
+                        <p class="text-blue-100 max-w-3xl text-lg mb-8">${section.desc || ''}</p>
+                        ${section.ctaLink && section.ctaLink !== '#' ? `<a href="${section.ctaLink}" target="_blank" class="bg-white text-blue-900 px-8 py-3 rounded-2xl font-bold inline-flex items-center gap-2 hover:bg-blue-50 shadow-xl transition-all">${section.ctaTitle || 'Lihat Selengkapnya'} <i data-lucide="external-link" class="w-4 h-4"></i></a>` : ''}
+                    </div>
+                </div>
+                <div class="mb-12">
+                    <div class="flex items-center justify-between mb-8 border-b pb-4"><h3 class="text-2xl font-bold text-slate-800 flex items-center gap-2"><i data-lucide="user-check" class="text-blue-600"></i> Informasi Pribadi Pengelola</h3>${isSuper ? `<button class="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg" onclick="window.openEdit('section_structure', '${type}')">Kelola Struktur</button>` : ''}</div>
+                    <div class="bg-white rounded-3xl border shadow-sm p-8 mb-8 profile-card flex flex-col md:flex-row gap-8 items-center md:items-start"><div class="w-44 h-44 rounded-2xl overflow-hidden shadow-xl border-4 border-white shrink-0"><img src="${section.kasiPhoto || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + section.id}" class="w-full h-full object-cover"></div><div class="flex-grow space-y-4"><div><span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">Kepala Seksi</span><h4 class="text-3xl font-bold text-slate-900 mt-2">${section.kasiName}</h4><p class="text-slate-500 font-medium">NIP. ${section.kasiNip || '-'}</p></div><p class="text-slate-600 text-sm leading-relaxed italic border-l-4 border-blue-100 pl-4">${section.kasiBio || 'Pengelola bertanggung jawab atas layanan seksi ini.'}</p></div></div>
+                    <h4 class="text-lg font-bold text-slate-700 mb-6 px-2">Staf Pelaksana Seksi</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">${(section.staff || []).map(st => `<div class="bg-white p-6 rounded-2xl border shadow-sm profile-card flex gap-4 items-center"><div class="w-16 h-16 rounded-full overflow-hidden shrink-0 border-2 border-slate-50"><img src="${st.photo || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + st.name}" class="w-full h-full object-cover"></div><div class="overflow-hidden"><p class="font-bold text-slate-800 text-sm truncate">${st.name}</p><p class="text-[11px] font-semibold text-blue-600 mt-1 uppercase">${st.role || 'Staf'}</p></div></div>`).join('')}</div>
+                </div>
+            </section>`;
+        };
+
+        const renderInformasiView = () => {
+            const hasAccess = window.canEdit('informasi');
+            return `<section class="page-content animate-fade-in">
+                <div class="mb-8 border-b pb-4 flex justify-between items-end"><h2 class="text-3xl font-bold text-blue-900">Informasi & Kegiatan</h2>${hasAccess ? `<button class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2" onclick="window.openEdit('add_news')"><i data-lucide="plus"></i> Tambah Berita</button>` : ''}</div>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    ${siteData.news.length === 0 ? '<div class="col-span-full py-12 text-center text-slate-300 italic">Belum ada berita yang diterbitkan.</div>' : siteData.news.map(n => `
+                        <article class="bg-white rounded-3xl border overflow-hidden shadow-sm hover:shadow-lg transition-all relative group">
+                            ${hasAccess ? `<div class="absolute top-2 right-2 flex gap-1 z-10 opacity-0 group-hover:opacity-100 transition-opacity"><button onclick="window.openEdit('edit_news', '${n.id}')" class="p-2 bg-white/90 rounded-full text-blue-600 shadow-sm"><i data-lucide="edit" class="w-4 h-4"></i></button><button onclick="window.deleteNews('${n.id}')" class="p-2 bg-white/90 rounded-full text-red-600 shadow-sm"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div>` : ''}
+                            <div class="h-48 overflow-hidden bg-slate-100"><img src="${(n.images || [])[0] || 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&q=80'}" class="w-full h-full object-cover"></div>
+                            <div class="p-6">
+                                <div class="flex items-center gap-2 text-blue-600 font-bold text-[10px] uppercase mb-2"><i data-lucide="calendar" class="w-3 h-3"></i>${n.date ? new Date(n.date).toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' }) : '-'}</div>
+                                <h3 class="font-bold text-lg mb-3 leading-tight text-slate-800">${n.title}</h3>
+                                <p class="text-sm text-slate-600 line-clamp-3 leading-relaxed">${n.content}</p>
+                            </div>
+                        </article>`).join('')}
+                </div>
+            </section>`;
+        };
+
+        window.renderPage = () => {
+            const { home } = siteData;
+            
+            // Header & Navbar
+            const logoC = document.getElementById('nav-logo-container'); 
+            if (logoC) { if (home.navLogo) logoC.innerHTML = `<img src="${home.navLogo}" class="h-full w-full object-contain">`; else logoC.innerHTML = `<i data-lucide="graduation-cap" class="text-white w-6 h-6"></i>`; }
+            const titleE = document.getElementById('nav-title-display'); if (titleE) titleE.innerText = home.navTitle || 'PAUD & DIKMAS';
+            
+            const navC = document.getElementById('nav-container');
+            const navs = [{id:'home', label:'Beranda'}, {id:'kabid', label:'Kepala Bidang'}, {id:'paud', label:'PAUD'},{id:'sarpras', label:'Sarpras'},{id:'dikmas', label:'Dikmas'},{id:'informasi', label:'Informasi'}];
+            const navH = navs.map(n => `<button onclick="window.showPage('${n.id}')" class="nav-link ${currentPage === n.id ? 'nav-active' : ''} py-2 uppercase text-xs font-bold transition-all hover:text-blue-600">${n.label}</button>`).join('');
+            if (navC) navC.innerHTML = navH;
+            
+            const mobileMenu = document.getElementById('mobile-menu');
+            if (mobileMenu) mobileMenu.innerHTML = navs.map(n => `<button onclick="window.showPage('${n.id}')" class="block w-full text-left py-2 uppercase text-xs font-bold ${currentPage === n.id ? 'text-blue-600 font-bold' : 'text-slate-600'}">${n.label}</button>`).join('');
+
+            // App Routing
+            const content = document.getElementById('app-content');
+            if (content) {
+                if (currentPage === 'home') content.innerHTML = renderHomeView();
+                else if (currentPage === 'kabid') content.innerHTML = renderKabidView();
+                else if (['paud', 'sarpras', 'dikmas'].includes(currentPage)) content.innerHTML = renderSectionView(currentPage);
+                else if (currentPage === 'informasi') content.innerHTML = renderInformasiView();
+            }
+
+            // UI Admin Controls
+            const bUser = document.getElementById('btn-user-mgmt'); 
+            const bNav = document.getElementById('btn-edit-nav');
+            const adminInd = document.getElementById('admin-indicator'); 
+            const roleE = document.getElementById('role-display');
+            if (isAdmin) {
+                adminInd.classList.remove('hidden'); adminInd.classList.add('flex');
+                if (roleE) roleE.innerText = userRole === 'super_admin' ? 'Super Admin' : 'Editor';
+                if (userRole === 'super_admin') { bUser.classList.remove('hidden'); bUser.classList.add('flex'); bNav.classList.remove('hidden'); }
+            } else { adminInd.classList.add('hidden'); bUser.classList.add('hidden'); bNav.classList.add('hidden'); }
+            
+            window.renderFooterView(); 
+            lucide.createIcons();
+        };
+
+        window.renderFooterView = () => {
+            const footer = document.getElementById('app-footer'); if (!footer) return;
+            const isSuper = window.canEdit('footer'); 
+            const editBtn = isSuper ? `<button class="btn-edit-floating text-slate-500" onclick="window.openEdit('footer_settings')"><i data-lucide="edit-3" class="w-3 h-3"></i></button>` : '';
+            footer.innerHTML = `<div class="max-w-7xl mx-auto px-4 text-center md:text-left">
+                <div class="grid md:grid-cols-2 gap-12 mb-12">
+                    <div><h4 class="text-white font-bold mb-4 uppercase tracking-wider text-sm flex items-center justify-center md:justify-start">Alamat Kontak ${editBtn}</h4><p class="text-sm leading-relaxed whitespace-pre-line text-slate-400">${siteData.home.footerContact || ''}</p></div>
+                    <div><h4 class="text-white font-bold mb-4 uppercase tracking-wider text-sm flex items-center justify-center md:justify-start">Tautan Cepat ${editBtn}</h4><ul class="space-y-2 text-sm">${(siteData.home.footerLinks || []).map(l => `<li><a href="${l.url}" target="_blank" class="hover:text-blue-400 transition-all border-b border-slate-800 pb-1 block text-slate-400">${l.label}</a></li>`).join('')}</ul></div>
+                </div>
+                <div class="flex flex-col md:flex-row justify-between items-center border-t border-slate-800 pt-8 gap-4">
+                    <p class="text-[10px] text-slate-600">&copy; 2026 Bidang Pembinaan PAUD & Dikmas.</p>
+                    <button onclick="window.openModal('login-modal')" class="text-xs text-slate-700 font-bold hover:text-blue-600 uppercase ${isAdmin ? 'hidden' : ''}">Panel Pengelola</button>
+                </div>
+            </div>`;
+        };
+
+        // ==========================================
+        // --- 5. EDITOR & ACTIONS ---
+        // ==========================================
+
+        window.openEdit = function(context, id = null) {
+            editingContext = { type: context, id: id };
+            const fields = document.getElementById('edit-fields'); const title = document.getElementById('edit-title'); 
+            if (!fields || !title) return; fields.innerHTML = '';
+            
+            if (context === 'home_visimisi') {
+                title.innerText = "Edit Judul & Butir Visi Misi";
+                fields.innerHTML = `<div class="space-y-4"><div><label class="block text-xs font-bold uppercase mb-1">Judul Bagian</label><input id="i-vm-title" class="w-full p-3 border rounded-xl" value="${siteData.home.visiMisiTitle}"></div><hr><div><label class="block text-xs font-bold uppercase mb-2">Poin Misi</label><div id="vm-list-edit" class="space-y-2">${(siteData.home.visiMisi || []).map(v => `<div class="flex gap-2"><input class="vm-item-input w-full p-2 border rounded text-sm" value="${v}"><button onclick="this.parentElement.remove()" class="text-red-500 font-bold px-2">X</button></div>`).join('')}</div><button onclick="window.addVMField()" class="w-full py-2 border-2 border-dashed rounded-lg text-blue-600 font-bold text-xs mt-3">+ Tambah Misi</button></div></div>`;
+            } else if (context === 'kabid_sampul') {
+                title.innerText = "Edit Banner Kepala Bidang";
+                fields.innerHTML = `<div class="space-y-4">
+                    <div><label class="block text-xs font-bold uppercase mb-1">Nama Kabid</label><input id="i-kab-name" class="w-full p-3 border rounded-xl" value="${siteData.home.kabidName}"></div>
+                    <div><label class="block text-xs font-bold uppercase mb-1">Motto</label><input id="i-kab-motto" class="w-full p-3 border rounded-xl" value="${siteData.home.kabidMotto}"></div>
+                    <div><label class="block text-xs font-bold uppercase mb-1">Link Foto Profil</label><input id="i-kab-photo" class="w-full p-3 border rounded-xl" value="${siteData.home.kabidPhoto}"></div>
+                    <div><label class="block text-xs font-bold uppercase mb-1">Link Banner Latar</label><input id="i-kab-banner" class="w-full p-3 border rounded-xl" value="${siteData.home.kabidBanner}"></div>
+                </div>`;
+            } else if (context === 'add_news' || context === 'edit_news') {
+                const n = id ? siteData.news.find(x => x.id === id) : { title:'', content:'', date: new Date().toISOString().split('T')[0], images: [] };
+                fields.innerHTML = `<div class="space-y-4"><div><label class="block text-xs font-bold mb-1">Judul Berita</label><input id="i-news-title" class="w-full p-3 border rounded-xl" value="${n.title}"></div><div><label class="block text-xs font-bold mb-1">Tanggal</label><input id="i-news-date" type="date" class="w-full p-3 border rounded-xl" value="${n.date}"></div><div><label class="block text-xs font-bold mb-1">Isi / Deskripsi</label><textarea id="i-news-content" class="w-full p-3 border rounded-xl h-48 text-sm">${n.content}</textarea></div><div><label class="block text-xs font-bold mb-1 uppercase">URL Foto</label><input id="i-news-images" class="w-full p-3 border rounded-xl text-sm" value="${(n.images || []).join(', ')}"></div></div>`;
+            } else if (context === 'section_structure') {
+                const sec = siteData.home.sections.find(s => s.id === id);
+                fields.innerHTML = `<div class="space-y-4"><div class="p-4 bg-blue-50 rounded-xl border">
+                    <label class="block text-xs font-bold uppercase mb-2">Kepala Seksi</label>
+                    <div class="grid grid-cols-2 gap-2 mb-2"><input id="i-kasi-name" class="p-2 border rounded text-sm" value="${sec.kasiName}" placeholder="Nama"><input id="i-kasi-nip" class="p-2 border rounded text-sm" value="${sec.kasiNip}" placeholder="NIP"></div>
+                    <input id="i-kasi-photo" class="w-full p-2 border rounded text-sm mb-2" value="${sec.kasiPhoto}" placeholder="URL Foto">
+                    <textarea id="i-kasi-bio" class="w-full p-2 border rounded text-xs h-16">${sec.kasiBio || ''}</textarea>
+                    </div><div class="p-4 bg-slate-50 rounded-xl border"><label class="block text-xs font-bold uppercase mb-2">Daftar Staf</label><div id="staff-list-edit" class="space-y-3">${(sec.staff || []).map(st => `<div class="p-3 border rounded-lg bg-white relative staff-item-edit"><div class="grid grid-cols-2 gap-2 mb-2"><input class="st-name p-2 border rounded text-xs" value="${st.name}" placeholder="Nama"><input class="st-nip p-2 border rounded text-xs" value="${st.nip || ''}"></div><div class="grid grid-cols-2 gap-2"><input class="st-role p-2 border rounded text-xs" value="${st.role || ''}"><input class="st-photo p-2 border rounded text-xs" value="${st.photo || ''}"></div><button onclick="this.parentElement.remove()" class="absolute -top-2 -right-2 bg-red-500 text-white w-5 h-5 rounded-full text-[10px]">X</button></div>`).join('')}</div><button onclick="window.addStaffField()" class="mt-4 w-full py-2 border-2 border-dashed rounded-lg text-blue-600 text-xs font-bold">+ Tambah Staf</button></div></div>`;
+            } else if (context === 'user_mgmt') {
+                title.innerText = "Manajemen User";
+                fields.innerHTML = `<div class="bg-blue-50 p-4 rounded-xl mb-6 text-center border"><div class="grid grid-cols-2 gap-2 mb-2"><input id="new-u" class="p-2 border rounded text-sm" placeholder="Username"><input id="new-p" class="p-2 border rounded text-sm" placeholder="Password"></div><div class="grid grid-cols-3 gap-2 mb-4 text-left">${['home', 'kabid', 'paud', 'sarpras', 'dikmas', 'informasi'].map(p => `<label class="text-[10px] flex items-center gap-1"><input type="checkbox" class="new-perm" value="${p}"> ${p.toUpperCase()}</label>`).join('')}</div><button onclick="window.addUser()" class="bg-blue-600 text-white w-full py-2 rounded text-sm font-bold shadow-lg">Simpan Akun Baru</button></div><div class="space-y-3">${siteData.users.map(u => `<div class="p-4 border rounded-xl flex justify-between bg-white shadow-sm"><div><p class="font-bold text-sm text-slate-800">${u.username}</p><p class="text-[10px] uppercase font-bold text-blue-600">${u.role}</p></div><div class="flex gap-2"><button onclick="window.openEdit('edit_user_direct', '${u.id}')" class="text-blue-600 text-xs font-bold px-3 py-1 bg-blue-50 rounded-lg">Edit</button><button onclick="window.deleteUser('${u.id}')" class="text-red-500 font-bold px-2 py-1 bg-red-50 rounded-lg">X</button></div></div>`).join('')}</div>`;
+            } else if (context === 'kabid_sambutan') {
+                title.innerText = "Edit Sambutan Kabid";
+                fields.innerHTML = `<textarea id="i-kabid-sambutan" class="w-full p-4 border rounded-xl h-64 text-sm">${siteData.home.kabidSambutan}</textarea><button class="ai-feature-btn mt-2 py-2 rounded-xl text-xs w-full" onclick="window.aiRefineText('i-kabid-sambutan')">Perhalus Kalimat AI ✨</button>`;
+            } else if (context === 'kabid_biodata') {
+                const b = siteData.home.kabidBiodata;
+                title.innerText = "Edit Biodata Kabid";
+                fields.innerHTML = `<div class="space-y-4"><input id="i-kb-nama" class="w-full p-3 border rounded-xl" value="${b.nama}" placeholder="Nama"><input id="i-kb-nip" class="w-full p-3 border rounded-xl" value="${b.nip}" placeholder="NIP"><input id="i-kb-jab" class="w-full p-3 border rounded-xl" value="${b.jabatan}" placeholder="Jabatan"><input id="i-kb-pen" class="w-full p-3 border rounded-xl" value="${b.pendidikan}" placeholder="Pendidikan"><textarea id="i-kb-bio" class="w-full p-3 border rounded-xl h-24" placeholder="Motto Hidup">${b.bio}</textarea></div>`;
+            } else if (context === 'kabid_programs') {
+                title.innerText = "Kelola Program Kerja";
+                fields.innerHTML = `<div id="program-list-edit" class="space-y-4">${(siteData.home.kabidPrograms || []).map(p => `<div class="p-4 bg-slate-50 border rounded-xl relative program-item-edit"><input class="prog-title w-full p-2 border rounded font-bold mb-2 text-sm" value="${p.title}" placeholder="Judul Program"><textarea class="prog-desc w-full p-2 border rounded text-xs" placeholder="Keterangan">${p.desc}</textarea><button onclick="this.parentElement.remove()" class="absolute -top-2 -right-2 bg-red-500 text-white w-6 h-6 rounded-full text-xs">X</button></div>`).join('')}</div><button onclick="window.addProgramField()" class="w-full py-3 border-2 border-dashed rounded-xl text-blue-600 font-bold mt-4">+ Tambah Program</button>`;
+            } else if (context === 'footer_settings') {
+                const linksHtml = (siteData.home.footerLinks || []).map(link => `<div class="flex gap-2 footer-link-item mb-2 p-2 bg-slate-50 rounded-lg"><input class="f-link-label p-2 border rounded text-xs flex-1" value="${link.label}" placeholder="Label"><input class="f-link-url p-2 border rounded text-xs flex-1" value="${link.url}" placeholder="URL"><button onclick="this.parentElement.remove()" class="text-red-500 font-bold px-2">X</button></div>`).join('');
+                fields.innerHTML = `<div><label class="block text-xs font-bold mb-2 uppercase">Alamat Kantor</label><textarea id="i-footer-contact" class="w-full p-3 border rounded-xl h-24 text-sm">${siteData.home.footerContact || ''}</textarea></div><hr><div id="footer-links-edit-container">${linksHtml}</div><button onclick="window.addFooterLinkField()" class="w-full py-2 border-2 border-dashed rounded text-blue-600 text-xs mt-2">+ Link Baru</button>`;
+            } else if (context === 'nav_settings') {
+                fields.innerHTML = `<div><label class="block text-xs font-bold mb-1 uppercase text-slate-400">Judul Navbar</label><input id="i-nav-title" class="w-full p-3 border rounded-xl" value="${siteData.home.navTitle || ''}"></div><div><label class="block text-xs font-bold mb-1 uppercase text-slate-400">Logo URL</label><input id="i-nav-logo" class="w-full p-3 border rounded-xl" value="${siteData.home.navLogo || ''}"></div>`;
+            } else if (context === 'section_desc') {
+                const sec = siteData.home.sections.find(s => s.id === id);
+                fields.innerHTML = `<div class="space-y-4"><div><label class="block text-xs font-bold uppercase mb-1">Judul Layanan</label><input id="i-name" class="w-full p-3 border rounded-xl" value="${sec.name}"></div><div><label class="block text-xs font-bold uppercase mb-1">Deskripsi</label><textarea id="i-desc" class="w-full p-3 border rounded-xl h-40 text-sm">${sec.desc || ''}</textarea></div><div class="grid grid-cols-2 gap-4 p-4 bg-blue-50 rounded-2xl"><div><label class="block text-xs font-bold uppercase mb-1 text-blue-700">Teks Tombol</label><input id="i-cta-title" class="w-full p-3 border rounded-xl" value="${sec.ctaTitle || ''}"></div><div><label class="block text-xs font-bold uppercase mb-1 text-blue-700">Link Tujuan</label><input id="i-cta-link" class="w-full p-3 border rounded-xl" value="${sec.ctaLink || ''}"></div></div></div>`;
+            } else if (context === 'home_profile') {
+                fields.innerHTML = `<div class="space-y-4"><div><label class="block text-xs font-bold mb-1 uppercase text-slate-400">Judul Profil</label><input id="i-prof-title" class="w-full p-3 border rounded-xl font-bold" value="${siteData.home.profileTitle}"></div><div><label class="block text-xs font-bold mb-1 uppercase text-slate-400">Isi Profil</label><textarea id="i-prof-text" class="w-full p-3 border rounded-xl h-48 text-sm">${siteData.home.profileText}</textarea></div></div>`;
+            } else if (context === 'home_hero') {
+                (siteData.home.heroSlides || []).forEach((s, i) => { fields.innerHTML += `<div class="p-4 border rounded-xl mb-2 relative bg-slate-50"><input class="hero-title w-full p-2 border rounded font-bold mb-1" value="${s.title}"><textarea class="w-full p-2 border rounded text-xs mb-1">${s.subtitle}</textarea><input class="hero-img w-full p-2 border rounded text-xs" value="${s.image}"><button class="text-red-500 text-xs mt-1" onclick="window.removeSlide(${i})">Hapus</button></div>`; });
+                fields.innerHTML += `<button onclick="window.addSlide()" class="w-full py-2 border-2 border-dashed rounded">+ Slide Baru</button>`;
+            } else if (context === 'home_struktur') {
+                fields.innerHTML = `<div class="space-y-4"><div><label class="block text-xs font-bold mb-1 uppercase">Judul Struktur</label><input id="i-str-title" class="w-full p-2 border rounded font-bold" value="${siteData.home.strukturTitle}"></div><hr>${siteData.home.sections.map((sec, idx) => `<div class="p-3 bg-slate-50 rounded-xl border"><label class="block text-[10px] font-bold uppercase mb-2 text-blue-600">${sec.name}</label><div class="grid grid-cols-2 gap-2"><input class="sec-kasi-name p-2 border rounded text-xs" data-idx="${idx}" value="${sec.kasiName}"><input class="sec-kasi-photo p-2 border rounded text-xs" data-idx="${idx}" value="${sec.kasiPhoto}"></div></div>`).join('')}</div>`;
+            }
+            window.openModal('edit-modal'); lucide.createIcons();
+        };
+
+        window.saveChanges = async function() {
+            const btn = document.getElementById('btn-save'); btn.disabled = true; btn.innerText = "Menyimpan...";
+            try {
+                const ctx = editingContext; const up = { ...siteData.home };
+                if (ctx.type === 'edit_user_direct') {
+                    const np = document.getElementById('edit-u-pass').value; const ps = Array.from(document.querySelectorAll('.edit-u-perm:checked')).map(cb => cb.value);
+                    await updateDoc(doc(db, pathUsers, ctx.id), { password: np, permissions: ps }); window.openEdit('user_mgmt'); return;
+                }
+                if (ctx.type === 'home_visimisi') {
+                    up.visiMisiTitle = document.getElementById('i-vm-title').value;
+                    up.visiMisi = Array.from(document.querySelectorAll('.vm-item-input')).map(el => el.value).filter(v => v.trim() !== '');
+                }
+                else if (ctx.type === 'kabid_sampul') {
+                    up.kabidName = document.getElementById('i-kab-name').value; up.kabidMotto = document.getElementById('i-kab-motto').value;
+                    up.kabidPhoto = document.getElementById('i-kab-photo').value; up.kabidBanner = document.getElementById('i-kab-banner').value;
+                }
+                else if (ctx.type === 'section_structure') {
+                    const sIdx = up.sections.findIndex(s => s.id === ctx.id);
+                    up.sections[sIdx].kasiName = document.getElementById('i-kasi-name').value; up.sections[sIdx].kasiNip = document.getElementById('i-kasi-nip').value;
+                    up.sections[sIdx].kasiPhoto = document.getElementById('i-kasi-photo').value; up.sections[sIdx].kasiBio = document.getElementById('i-kasi-bio').value;
+                    up.sections[sIdx].staff = Array.from(document.querySelectorAll('.staff-item-edit')).map(el => ({ name: el.querySelector('.st-name').value, nip: el.querySelector('.st-nip').value, role: el.querySelector('.st-role').value, photo: el.querySelector('.st-photo').value })).filter(s => s.name !== '');
+                }
+                else if (ctx.type === 'home_profile') { up.profileTitle = document.getElementById('i-prof-title').value; up.profileText = document.getElementById('i-prof-text').value; }
+                else if (ctx.type === 'home_hero') {
+                    up.heroSlides = Array.from(document.querySelectorAll('.hero-title')).map(el => { const p = el.closest('.bg-slate-50'); return { title: el.value, subtitle: p.querySelector('textarea').value, image: p.querySelector('.hero-img').value }; });
+                }
+                else if (ctx.type === 'add_news' || ctx.type === 'edit_news') {
+                    const newsData = { title: document.getElementById('i-news-title').value, date: document.getElementById('i-news-date').value, content: document.getElementById('i-news-content').value, images: document.getElementById('i-news-images').value.split(',').map(s => s.trim()).filter(s => s !== ''), timestamp: Date.now() };
+                    if (ctx.type === 'add_news') await addDoc(collection(db, pathNews), newsData);
+                    else await setDoc(doc(db, pathNews, ctx.id), newsData, { merge: true });
+                    window.closeModal('edit-modal'); window.renderPage(); return;
+                }
+                await setDoc(doc(db, pathSettings), up); window.closeModal('edit-modal'); window.renderPage();
+            } catch (e) { alert("Simpan Gagal!"); } finally { btn.disabled = false; btn.innerText = "Simpan Perubahan"; }
+        };
+
+        // --- HELPER METHODS ---
+        window.addVMField = () => { document.getElementById('vm-list-edit').insertAdjacentHTML('beforeend', `<div class="flex gap-2"><input class="vm-item-input w-full p-2 border rounded text-sm"><button onclick="this.parentElement.remove()" class="text-red-500 font-bold px-2">X</button></div>`); };
+        window.addProgramField = () => { document.getElementById('program-list-edit').insertAdjacentHTML('beforeend', `<div class="p-4 bg-slate-50 border rounded-xl relative program-item-edit"><input class="prog-title w-full p-2 border rounded font-bold mb-2 text-sm" placeholder="Program Baru"><textarea class="prog-desc w-full p-2 border rounded text-xs" placeholder="Deskripsi"></textarea><button onclick="this.parentElement.remove()" class="absolute -top-2 -right-2 bg-red-500 text-white w-6 h-6 rounded-full text-xs">X</button></div>`); };
+        window.addStaffField = () => { document.getElementById('staff-list-edit').insertAdjacentHTML('beforeend', `<div class="p-3 border rounded-lg bg-white relative staff-item-edit"><div class="grid grid-cols-2 gap-2 mb-2"><input class="st-name p-2 border rounded text-xs" placeholder="Nama"><input class="st-nip p-2 border rounded text-xs" placeholder="NIP"></div><input class="st-role p-2 border rounded text-xs w-full mt-1" placeholder="Jabatan"><input class="st-photo p-2 border rounded text-xs w-full mt-1" placeholder="URL Foto"></div>`); };
+        window.addFooterLinkField = () => { document.getElementById('footer-links-edit-container').insertAdjacentHTML('beforeend', `<div class="flex gap-2 footer-link-item mb-2 p-2 bg-slate-50 rounded-lg"><input class="f-link-label p-2 border rounded text-xs flex-1" placeholder="Label"><input class="f-link-url p-2 border rounded text-xs flex-1" placeholder="URL"></div>`); };
+        window.addSlide = () => { siteData.home.heroSlides.push({title:'Slide Baru', subtitle:'', image:''}); window.openEdit('home_hero'); };
+        window.removeSlide = (i) => { siteData.home.heroSlides.splice(i,1); window.openEdit('home_hero'); };
+        window.deleteNews = async (id) => { if (confirm('Hapus Berita?')) await deleteDoc(doc(db, pathNews, id)); };
+        window.deleteUser = async (id) => { if (confirm('Hapus User?')) await deleteDoc(doc(db, pathUsers, id)); window.openEdit('user_mgmt'); };
+        window.addUser = async () => { const u = document.getElementById('new-u').value; const p = document.getElementById('new-p').value; const ps = Array.from(document.querySelectorAll('.new-perm:checked')).map(cb => cb.value); if (u && p) await addDoc(collection(db, pathUsers), { username: u, password: p, role: 'editor', permissions: ps }); window.openEdit('user_mgmt'); };
+        window.aiRefineText = async (id) => { const el = document.getElementById(id); if (el && el.value.length > 5) { const r = await callGemini(`Perhalus teks formal dinas: ${el.value}`, "Penulis Konten"); if (r) el.value = r.trim().replace(/^"(.*)"$/, '$1'); } };
+
+        // --- SISTEM BOOT & LISTENERS ---
+        async function setupListeners(user) {
+            if (!user) return;
+            onSnapshot(doc(db, pathSettings), (snap) => { 
+                if (snap.exists()) { siteData.home = snap.data(); window.renderPage(); } 
+                else setDoc(doc(db, pathSettings), siteData.home); 
+                document.getElementById('loading-screen').classList.add('hidden'); 
+            }, (err) => { console.error(err); document.getElementById('loading-screen').classList.add('hidden'); });
+            
+            onSnapshot(collection(db, pathNews), (snap) => { siteData.news = snap.docs.map(d => ({ id: d.id, ...d.data() })); window.renderPage(); });
+            
+            onSnapshot(collection(db, pathUsers), (snap) => { 
+                siteData.users = snap.docs.map(d => ({ id: d.id, ...d.data() })); 
+                if (siteData.users.length === 0) addDoc(collection(db, pathUsers), { username: 'admin', password: '123', role: 'super_admin', permissions: ['home', 'kabid', 'paud', 'sarpras', 'dikmas', 'informasi'] }); 
+            });
+        }
         
-        // Aturan 1: ID Aplikasi unik
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'paud-dikmas-github-deploy';
-
-        let siteData = {};
-
-        // Inisialisasi Auth Terlebih Dahulu (Aturan 3)
-        const initAuthAndData = async () => {
+        async function initAuth() {
             try {
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     await signInWithCustomToken(auth, __initial_auth_token);
                 } else {
                     await signInAnonymously(auth);
                 }
-
-                onAuthStateChanged(auth, (user) => {
-                    if (user) {
-                        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'siteContent', 'main');
-                        // Aturan 2: No Complex Queries, Fetch Simple
-                        onSnapshot(docRef, (snap) => {
-                            if (snap.exists()) {
-                                siteData = snap.data();
-                                applyDataToUI();
-                            }
-                        }, (err) => console.error("Firestore error:", err));
-                    }
-                });
-            } catch (err) {
-                console.error("Auth error:", err);
-            }
-        };
-
-        const applyDataToUI = () => {
-            Object.keys(siteData).forEach(key => {
-                const el = document.querySelector(`[data-db="${key}"]`);
-                if (el) el.innerHTML = siteData[key];
-                
-                if (key.endsWith('-url')) {
-                    const container = document.querySelector(`[data-img-db="${key}"]`);
-                    if (container) {
-                        const img = container.querySelector('img');
-                        if (img) img.src = siteData[key];
-                    }
-                }
-            });
-        };
-
-        // Simpan Semua Perubahan
-        window.saveAllChanges = async () => {
-            if (!auth.currentUser) {
-                alert("Anda belum terautentikasi.");
-                return;
-            }
-            
-            const btn = document.getElementById('save-btn');
-            btn.innerText = "MENYIMPAN...";
-            
-            const newData = {...siteData};
-            document.querySelectorAll('[data-db]').forEach(el => {
-                newData[el.getAttribute('data-db')] = el.innerHTML;
-            });
-            
-            try {
-                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'siteContent', 'main');
-                await setDoc(docRef, newData, { merge: true });
-                btn.innerText = "BERHASIL!";
-                setTimeout(() => btn.innerText = "SIMPAN PERUBAHAN", 2000);
-            } catch (err) {
-                alert("Gagal simpan: Pastikan config Firebase Anda benar.");
-                btn.innerText = "GAGAL";
-            }
-        };
-
-        initAuthAndData();
-    </script>
-
-    <script>
-        // UI & Navigasi (Global)
-        function showPage(pageId) {
-            const pages = ['beranda', 'tentang-kami', 'berita', 'seksi-paud', 'seksi-sarpras', 'seksi-dikmas'];
-            pages.forEach(p => {
-                const el = document.getElementById('page-' + p);
-                if (el) el.classList.remove('page-active');
-            });
-            const target = document.getElementById('page-' + pageId);
-            if (target) target.classList.add('page-active');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            } catch (e) { console.error("Auth error:", e); }
         }
 
-        window.promptAdminLogin = () => {
-            document.getElementById('login-modal').classList.remove('hidden');
-        };
-
-        window.closeAdminModal = () => {
-            document.getElementById('login-modal').classList.add('hidden');
-            document.getElementById('admin-pin').value = '';
-        };
-
-        window.validateAdminPin = () => {
-            const pin = document.getElementById('admin-pin').value;
-            if (pin === "1234") {
-                document.body.classList.add('admin-mode-active');
-                document.getElementById('admin-toolbar').classList.remove('hidden');
-                document.getElementById('main-nav').style.top = "40px";
-                document.querySelectorAll('[data-db]').forEach(el => el.setAttribute('contenteditable', 'true'));
-                window.closeAdminModal();
-            } else {
-                document.getElementById('login-error').classList.remove('hidden');
-            }
-        };
-
-        window.logoutAdmin = () => window.location.reload();
-
-        // Gambar UI
-        let currentImgKey = null;
-        window.openImgModal = (key) => {
-            currentImgKey = key;
-            document.getElementById('img-url-modal').classList.remove('hidden');
-        };
-        window.closeImgModal = () => {
-            document.getElementById('img-url-modal').classList.add('hidden');
-        };
-        window.applyImgUrl = () => {
-            const url = document.getElementById('new-img-url').value;
-            if (url) {
-                const container = document.querySelector(`[data-img-db="${currentImgKey}"]`);
-                if (container) {
-                    const img = container.querySelector('img');
-                    if (img) img.src = url;
-                }
-            }
-            window.closeImgModal();
-        };
-
-        window.onload = () => {
-            if (window.lucide) window.lucide.createIcons();
-        };
+        onAuthStateChanged(auth, (user) => { if (user) setupListeners(user); });
+        initAuth();
     </script>
 </body>
 </html>
